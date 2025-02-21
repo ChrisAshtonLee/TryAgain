@@ -17,11 +17,17 @@ private:
 	glm::vec3 vertices[2];// = {
 	//	{0.5f,0.5f,0.0f},
 		//{0.5f,-0.5f,0.0f}
-		
+	int noLines = 0;
 //	};
 
 public:
-	Line(glm::vec3 start, glm::vec3 end): start(start), end(end) {}
+	bool addLine(glm::vec3 s, glm::vec3 e){
+		start = s;
+		end = e;
+		noLines++;
+		return true;
+	
+	}
 		void load() {
 			vertices[0] = start;
 			vertices[1] = end;

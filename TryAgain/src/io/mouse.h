@@ -3,7 +3,7 @@
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
-
+#include <glm/glm.hpp>
 #include <vector>
 
 /*
@@ -46,7 +46,8 @@ public:
     static double getScrollDX();
     // get scroll value in y
     static double getScrollDY();
-
+    //calculate mouse ray
+    static glm::vec4 calculateMouseRay(float width, float height, glm::mat4 proj);
     // get button state
     static bool button(int button);
     // return if button changed then reset it in the changed array

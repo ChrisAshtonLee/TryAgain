@@ -5,12 +5,16 @@ VisualStudioVersion = 17.9.34714.143
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "TryAgain", "TryAgain\TryAgain.vcxproj", "{7971ED3C-7D0B-4724-9E99-7D3A75A2EFA9}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "example_glfw_opengl3", "TryAgain\imgui\examples\example_glfw_opengl3\example_glfw_opengl3.vcxproj", "{4A1FB5EA-22F5-42A8-AB92-1D2DF5D47FB9}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
 		Debug|x86 = Debug|x86
+		mathapp_release|x64 = mathapp_release|x64
+		mathapp_release|x86 = mathapp_release|x86
+		mathapp|x64 = mathapp|x64
+		mathapp|x86 = mathapp|x86
+		mathvis|x64 = mathvis|x64
+		mathvis|x86 = mathvis|x86
 		Release|x64 = Release|x64
 		Release|x86 = Release|x86
 	EndGlobalSection
@@ -19,18 +23,22 @@ Global
 		{7971ED3C-7D0B-4724-9E99-7D3A75A2EFA9}.Debug|x64.Build.0 = Debug|x64
 		{7971ED3C-7D0B-4724-9E99-7D3A75A2EFA9}.Debug|x86.ActiveCfg = Debug|Win32
 		{7971ED3C-7D0B-4724-9E99-7D3A75A2EFA9}.Debug|x86.Build.0 = Debug|Win32
+		{7971ED3C-7D0B-4724-9E99-7D3A75A2EFA9}.mathapp_release|x64.ActiveCfg = mathapp_release|x64
+		{7971ED3C-7D0B-4724-9E99-7D3A75A2EFA9}.mathapp_release|x64.Build.0 = mathapp_release|x64
+		{7971ED3C-7D0B-4724-9E99-7D3A75A2EFA9}.mathapp_release|x86.ActiveCfg = mathapp_release|Win32
+		{7971ED3C-7D0B-4724-9E99-7D3A75A2EFA9}.mathapp_release|x86.Build.0 = mathapp_release|Win32
+		{7971ED3C-7D0B-4724-9E99-7D3A75A2EFA9}.mathapp|x64.ActiveCfg = mathapp|x64
+		{7971ED3C-7D0B-4724-9E99-7D3A75A2EFA9}.mathapp|x64.Build.0 = mathapp|x64
+		{7971ED3C-7D0B-4724-9E99-7D3A75A2EFA9}.mathapp|x86.ActiveCfg = mathapp|Win32
+		{7971ED3C-7D0B-4724-9E99-7D3A75A2EFA9}.mathapp|x86.Build.0 = mathapp|Win32
+		{7971ED3C-7D0B-4724-9E99-7D3A75A2EFA9}.mathvis|x64.ActiveCfg = Debug|x64
+		{7971ED3C-7D0B-4724-9E99-7D3A75A2EFA9}.mathvis|x64.Build.0 = Debug|x64
+		{7971ED3C-7D0B-4724-9E99-7D3A75A2EFA9}.mathvis|x86.ActiveCfg = Debug|Win32
+		{7971ED3C-7D0B-4724-9E99-7D3A75A2EFA9}.mathvis|x86.Build.0 = Debug|Win32
 		{7971ED3C-7D0B-4724-9E99-7D3A75A2EFA9}.Release|x64.ActiveCfg = Release|x64
 		{7971ED3C-7D0B-4724-9E99-7D3A75A2EFA9}.Release|x64.Build.0 = Release|x64
 		{7971ED3C-7D0B-4724-9E99-7D3A75A2EFA9}.Release|x86.ActiveCfg = Release|Win32
 		{7971ED3C-7D0B-4724-9E99-7D3A75A2EFA9}.Release|x86.Build.0 = Release|Win32
-		{4A1FB5EA-22F5-42A8-AB92-1D2DF5D47FB9}.Debug|x64.ActiveCfg = Debug|x64
-		{4A1FB5EA-22F5-42A8-AB92-1D2DF5D47FB9}.Debug|x64.Build.0 = Debug|x64
-		{4A1FB5EA-22F5-42A8-AB92-1D2DF5D47FB9}.Debug|x86.ActiveCfg = Debug|Win32
-		{4A1FB5EA-22F5-42A8-AB92-1D2DF5D47FB9}.Debug|x86.Build.0 = Debug|Win32
-		{4A1FB5EA-22F5-42A8-AB92-1D2DF5D47FB9}.Release|x64.ActiveCfg = Release|x64
-		{4A1FB5EA-22F5-42A8-AB92-1D2DF5D47FB9}.Release|x64.Build.0 = Release|x64
-		{4A1FB5EA-22F5-42A8-AB92-1D2DF5D47FB9}.Release|x86.ActiveCfg = Release|Win32
-		{4A1FB5EA-22F5-42A8-AB92-1D2DF5D47FB9}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

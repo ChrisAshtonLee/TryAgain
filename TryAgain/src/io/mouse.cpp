@@ -127,7 +127,16 @@ double Mouse::getDY() {
     dy = 0;
     return _dy;
 }
-
+glm::vec4 Mouse::calculateMouseRay(float width, float height, glm::mat4 proj) {
+    float mouseX = Mouse::getMouseX();
+    float mouseY = Mouse::getMouseY();
+    float x = (2.0f * mouseX) / width - 1;
+    float y = (2.0f * mouseY) / height - 1;
+    glm::vec4 clipCoords = { x,y,-1.0f,1.0f };
+    glm::mat4 invProj = glm::inverse(proj);
+    glm::vec4 answer = { 0,0,0,0 };
+    return answer;
+}
 // get scroll value in x
 double Mouse::getScrollDX() {
     double _scrollDx = scrollDx;
