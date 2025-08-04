@@ -18,8 +18,8 @@
 class Shader {
 public:
     // program ID
-    unsigned int id;
-
+    //unsigned int id;
+    GLuint id;
     /*
         constructors
     */
@@ -62,6 +62,7 @@ public:
     void set4Float(const std::string& name, glm::vec4 v);
     void setMat3(const std::string& name, glm::mat3 val);
     void setMat4(const std::string& name, glm::mat4 val);
+    void setVec4(const std::string& name, glm::vec4 val);
 
     /*
         static

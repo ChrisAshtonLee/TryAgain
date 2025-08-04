@@ -21,12 +21,14 @@ Shader::Shader(bool includeDefaultHeader, const char* vertexShaderPath, const ch
 
 void compileAndAttach(GLuint id, bool includeDefaultHeader, const char* path, GLuint type) {
     if (!path) {
+		std::cout << "Shader path is NULL for type "<<type<<" , skipping compilation." << std::endl;
         return;
     }
 
     GLuint shader = Shader::compileShader(includeDefaultHeader, path, type);
     glAttachShader(id, shader);
     glDeleteShader(shader);
+    
 }
 
 // generate using vertex and frag shaders
@@ -52,6 +54,11 @@ void Shader::generate(bool includeDefaultHeader, const char* vertexShaderPath, c
 // activate shader
 void Shader::activate() {
     glUseProgram(id);
+    /*GLenum err = glGetError();
+    if (err != GL_NO_ERROR) {
+        std::cerr << "OpenGL error after glUseProgram: " << err << std::endl;
+		std::cout << "Shader ID: " << id << std::endl;
+    }*/
 }
 
 // cleanup
@@ -97,6 +104,14 @@ void Shader::setMat3(const std::string& name, glm::mat3 val) {
 
 void Shader::setMat4(const std::string& name, glm::mat4 val) {
     glUniformMatrix4fv(glGetUniformLocation(id, name.c_str()), 1, GL_FALSE, glm::value_ptr(val));
+}
+
+void Shader::setVec4(const std::string& name, glm::vec4 val)
+{
+    
+     glUniform4f(glGetUniformLocation(id, name.c_str()), val.x, val.y, val.z, val.w);
+    
+
 }
 
 /*

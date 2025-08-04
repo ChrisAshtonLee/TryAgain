@@ -100,6 +100,7 @@
     <Message Importance="High" Text="QtMsBuild: could not locate qt.targets, qt.props; project may not build correctly." />
   </Target>
   <ImportGroup Label="ExtensionSettings">
+    <Import Project="$(VCTargetsPath)\BuildCustomizations\ShaderGraphContentTask.props" />
   </ImportGroup>
   <ImportGroup Label="Shared">
   </ImportGroup>
@@ -135,6 +136,11 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='mathapp|x64'">
     <IncludePath>$(SolutionDir)\Linking\include;$(VC_IncludePath);$(WindowsSDK_IncludePath);C:\Users\85chr\source\repos\TryAgain\TryAgain\imgui;C:\Users\85chr\source\repos\TryAgain\TryAgain\imgui\backends;C:\Users\85chr\source\repos\TryAgain\TryAgain\imgui\misc\cpp</IncludePath>
     <LibraryPath>$(SolutionDir)\Linking\lib;$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64)</LibraryPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <IncludePath>$(SolutionDir)\Linking\include;$(VC_IncludePath);$(WindowsSDK_IncludePath);C:\Users\85chr\source\repos\TryAgain\TryAgain\imgui;C:\Users\85chr\source\repos\TryAgain\TryAgain\imgui\backends;C:\Users\85chr\source\repos\TryAgain\TryAgain\imgui\misc\cpp</IncludePath>
+    <LibraryPath>$(SolutionDir)\Linking\lib;$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64)</LibraryPath>
+    <LinkIncremental>true</LinkIncremental>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -186,13 +192,15 @@
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <AdditionalIncludeDirectories>..\..;..\..\backends;..\libs\glfw\include;imgui\;imgui-docking\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:/Users/85chr/scoop/apps/python/3.13.0/include;C:/Users/85chr/scoop/apps/python/current/Lib/site-packages/pybind11/include;C:/Users/85chr/scoop/apps/python/current/Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard_C>stdc11</LanguageStandard_C>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>GLFW\glfw3.lib;opengl32.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>$(SolutionDir)\Linking\lib\GLFW\glfw3.lib;opengl32.lib;$(CoreLibraryDependencies);%(AdditionalDependencies);C:/Users/85chr/scoop/apps/python/3.13.0/libs/python313.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>C:/Users/85chr/scoop/apps/python/3.13.0/libs;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='mathapp|x64'">
@@ -202,13 +210,15 @@
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <AdditionalIncludeDirectories>..\..;..\..\backends;..\libs\glfw\include;imgui\;imgui-docking\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:/Users/85chr/scoop/apps/python/3.13.0/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard_C>stdc11</LanguageStandard_C>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>GLFW\glfw3.lib;opengl32.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>GLFW\glfw3.lib;opengl32.lib;$(CoreLibraryDependencies);%(AdditionalDependencies);C:/Users/85chr/scoop/apps/python/3.13.0/libs/python313.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>C:/Users/85chr/scoop/apps/python/3.13.0/libs;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -220,15 +230,31 @@
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <AdditionalIncludeDirectories>C:/Users/85chr/scoop/apps/python/3.13.0/include;C:/Users/85chr/scoop/apps/python/current/Include;C:/Users/85chr/scoop/apps/python/current/Lib/site-packages/pybind11/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>$(SolutionDir)\Linking\lib\GLFW\glfw3.lib;opengl32.lib;$(CoreLibraryDependencies);%(AdditionalDependencies);C:/Users/85chr/scoop/apps/python/3.13.0/libs/python313.lib</AdditionalDependencies>
+      <LinkTimeCodeGeneration>Default</LinkTimeCodeGeneration>
+      <AdditionalLibraryDirectories>C:/Users/85chr/scoop/apps/python/3.13.0/libs;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='mathapp_release|x64'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>C:/Users/85chr/scoop/apps/python/3.13.0/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+    </ClCompile>
+    <Link>
+      <AdditionalLibraryDirectories>C:/Users/85chr/scoop/apps/python/3.13.0/libs;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>$(CoreLibraryDependencies);%(AdditionalDependencies);C:/Users/85chr/scoop/apps/python/3.13.0/libs/python313.lib</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="bindings\bindings.cpp" />
     <ClCompile Include="imgui\backends\imgui_impl_glfw.cpp" />
     <ClCompile Include="imgui\backends\imgui_impl_opengl3.cpp" />
     <ClCompile Include="imgui\imgui.cpp" />
@@ -245,12 +271,14 @@
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\programs\halfspace.hpp" />
     <ClCompile Include="src\programs\program.cpp" />
+    <ClCompile Include="src\programs\sphere.cpp" />
     <ClCompile Include="src\rendering\material.cpp" />
     <ClCompile Include="src\rendering\shader.cpp" />
+    <ClCompile Include="src\TukeyContour.cpp" />
     <ClCompile Include="src\TukeyRegion.cpp" />
+    <ClCompile Include="src\ui\UI.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="assets\fragment_core.glsl" />
     <None Include="assets\shaders\halfspace.frag" />
     <None Include="assets\shaders\halfspace.vert" />
     <None Include="assets\shaders\line.frag" />
@@ -259,11 +287,12 @@
     <None Include="assets\shaders\points.vert" />
     <None Include="assets\shaders\polygon.frag" />
     <None Include="assets\shaders\polygon.vert" />
+    <None Include="assets\shaders\preview.frag" />
+    <None Include="assets\shaders\preview.vert" />
     <None Include="assets\shaders\rectangle.frag" />
     <None Include="assets\shaders\rectangle.vert" />
     <None Include="assets\shaders\sphere.frag" />
     <None Include="assets\shaders\sphere.vert" />
-    <None Include="assets\vertex_core.glsl" />
     <None Include="glfw3.dll" />
     <None Include="imgui\.editorconfig" />
     <None Include="imgui\.gitattributes" />
@@ -271,6 +300,36 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="common\data.h" />
+    <ClInclude Include="extern\pybind11\attr.h" />
+    <ClInclude Include="extern\pybind11\buffer_info.h" />
+    <ClInclude Include="extern\pybind11\cast.h" />
+    <ClInclude Include="extern\pybind11\chrono.h" />
+    <ClInclude Include="extern\pybind11\common.h" />
+    <ClInclude Include="extern\pybind11\complex.h" />
+    <ClInclude Include="extern\pybind11\critical_section.h" />
+    <ClInclude Include="extern\pybind11\eigen.h" />
+    <ClInclude Include="extern\pybind11\embed.h" />
+    <ClInclude Include="extern\pybind11\eval.h" />
+    <ClInclude Include="extern\pybind11\functional.h" />
+    <ClInclude Include="extern\pybind11\gil.h" />
+    <ClInclude Include="extern\pybind11\gil_safe_call_once.h" />
+    <ClInclude Include="extern\pybind11\gil_simple.h" />
+    <ClInclude Include="extern\pybind11\iostream.h" />
+    <ClInclude Include="extern\pybind11\native_enum.h" />
+    <ClInclude Include="extern\pybind11\numpy.h" />
+    <ClInclude Include="extern\pybind11\operators.h" />
+    <ClInclude Include="extern\pybind11\options.h" />
+    <ClInclude Include="extern\pybind11\pybind11.h" />
+    <ClInclude Include="extern\pybind11\pytypes.h" />
+    <ClInclude Include="extern\pybind11\stl.h" />
+    <ClInclude Include="extern\pybind11\stl\filesystem.h" />
+    <ClInclude Include="extern\pybind11\stl_bind.h" />
+    <ClInclude Include="extern\pybind11\subinterpreter.h" />
+    <ClInclude Include="extern\pybind11\trampoline_self_life_support.h" />
+    <ClInclude Include="extern\pybind11\type_caster_pyobject_ptr.h" />
+    <ClInclude Include="extern\pybind11\typing.h" />
+    <ClInclude Include="extern\pybind11\warnings.h" />
     <ClInclude Include="imgui\backends\imgui_impl_glfw.h" />
     <ClInclude Include="imgui\backends\imgui_impl_opengl3.h" />
     <ClInclude Include="imgui\backends\imgui_impl_opengl3_loader.h" />
@@ -297,14 +356,18 @@
     <ClInclude Include="src\programs\polygon.hpp" />
     <ClInclude Include="src\programs\program.h" />
     <ClInclude Include="src\programs\rectangle.hpp" />
-    <ClInclude Include="src\programs\sphere.hpp" />
+    <ClInclude Include="src\programs\sphere.h" />
     <ClInclude Include="src\rendering\material.h" />
     <ClInclude Include="src\rendering\shader.h" />
     <ClInclude Include="src\rendering\uniformmemory.hpp" />
     <ClInclude Include="src\rendering\vertexmemory.hpp" />
+    <ClInclude Include="src\TukeyContour.h" />
     <ClInclude Include="src\TukeyRegion.h" />
+    <ClInclude Include="src\ui\imgui_impl_opengl3.h" />
+    <ClInclude Include="src\ui\UI.h" />
   </ItemGroup>
   <ItemGroup>
+    <Text Include="assets\shaders\dirlight.frag" />
     <Text Include="imgui\LICENSE.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
@@ -312,6 +375,7 @@
   <ImportGroup Label="ExtensionTargets">
     <Import Project="..\packages\sdl2.nuget.redist.2.30.9\build\native\sdl2.nuget.redist.targets" Condition="Exists('..\packages\sdl2.nuget.redist.2.30.9\build\native\sdl2.nuget.redist.targets')" />
     <Import Project="..\packages\sdl2.nuget.2.30.9\build\native\sdl2.nuget.targets" Condition="Exists('..\packages\sdl2.nuget.2.30.9\build\native\sdl2.nuget.targets')" />
+    <Import Project="$(VCTargetsPath)\BuildCustomizations\ShaderGraphContentTask.targets" />
   </ImportGroup>
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>

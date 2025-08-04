@@ -107,6 +107,21 @@ public:
         glDrawElementsInstanced(mode, count, type, (void*)indices, instancecount);
     }
 
+    void drawDistinctElements(GLenum mode, const std::vector<int>& block_size, GLenum type, GLuint instancecount) {
+        // The 'indices' parameter was unused and can be removed for clarity.
+        // Use size_t for offsets to avoid potential type issues.
+        size_t offset = 0;
+        for (int i = 0; i < instancecount; i++) {
+            // The last argument is a pointer to the offset in the currently bound EBO.
+            // It must be a byte offset, so we multiply the index offset by the size of the index type.
+            glDrawElements(mode, block_size[i], type, (void*)(offset));
+
+            // Update the offset for the next iteration by adding the size of the current block in bytes.
+            if (i < block_size.size()) {
+                offset += block_size[i] * sizeof(unsigned int);
+            }
+        }
+    }
     // cleanup
     void cleanup() {
         glDeleteVertexArrays(1, &val);

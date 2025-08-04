@@ -11,5 +11,5 @@ void main()
     
     gl_Position = projView*vec4(pos, 1.0);
     ourColor = aColor;
-    gl_PointSize = 9.0; // Set the size of the points
+    gl_PointSize = 5.0; // Set the size of the points
 }

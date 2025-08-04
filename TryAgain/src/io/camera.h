@@ -5,7 +5,7 @@
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-
+#include <common/data.h>
 /*
     enum to represent directions for movement
 */
@@ -37,7 +37,8 @@ public:
     glm::vec3 cameraFront;
     glm::vec3 cameraUp;
     glm::vec3 cameraRight;
-
+    glm::mat4 view;
+    glm::mat4 projection;
     // camera rotational values
     float yaw; // x-axis
     float pitch; // y-axis
@@ -67,6 +68,7 @@ public:
     // change camera zoom (scroll wheel)
     void updateCameraZoom(double dy);
 
+    CameraData getCameraData(float scr_width, float scr_height);
     /*
         accessors
     */

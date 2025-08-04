@@ -75,13 +75,29 @@ void Camera::updateCameraZoom(double dy) {
     }
 }
 
+CameraData Camera::getCameraData(float scr_width,float scr_height) {
+    
+    projection = glm::perspective(glm::radians(getZoom()), (float)scr_width / (float)scr_height, 0.1f, 100.0f);
+
+    CameraData data;
+	data.View = getViewMatrix();
+    data.Projection = projection;
+	data.CameraPos = cameraPos;
+	data.Right = cameraRight;   
+	data.Up = cameraUp;
+	data.ScrollDepth = glm::vec3(0.0f, 0.0f, 0.0f); // Not used in this context, but can be set if needed
+	data.scr_height = scr_height;
+	data.scr_width = scr_width;
+    return data;
+}
 /*
     accessors
 */
 
 // get view matrix for camera
 glm::mat4 Camera::getViewMatrix() {
-    return glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
+    view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
+    return view;// glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
 }
 
 // get zoom value for camera
