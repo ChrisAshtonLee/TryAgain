@@ -133,50 +133,63 @@ TukeyContour::TukeyContour(std::vector<Vertex> input_points, int k, bool median=
         }
     }
     std::cout << "Step 4: Identified " << median_dual_vertices.size() << " vertices with maximum depth." << std::endl;
-
-    if (median_dual_vertices.size() < 3) {
-        std::cerr << "Error: Degenerate case. Not enough vertices to form a contour." << std::endl;
-        return;
-    }
-
-    // --- Step 5: Compute the convex hull of the median vertices in the dual space ---
-    std::vector<Point> dual_contour = monotone_chain_convex_hull(median_dual_vertices);
-    std::cout << "Step 5: Computed the convex hull of the median region in the dual space." << std::endl;
-
-    // --- Step 6: Transform the vertices of the dual contour back to primal lines ---
-    // A point (dx, dy) in the dual space transforms back to a line y = dx*x - dy in the primal space.
     std::vector<Lines> primal_contour_lines;
-    for (const auto& p : dual_contour) {
-        primal_contour_lines.push_back({ p.x, -p.y });
+    if (median_dual_vertices.size() < 3) {
+        //std::cerr << "Error: Degenerate case. Not enough vertices to form a contour." << std::endl;
+        std::cout << "Too few vertices to form a contour." << std::endl;
+        for (const auto& p : median_dual_vertices) {
+            primal_contour_lines.push_back({ p.x, -p.y });
+        }
+        for (size_t i = 0; i < primal_contour_lines.size(); ++i) {
+            const Lines& l1 = primal_contour_lines[i];
+            const Lines& l2 = primal_contour_lines[(i + 1) % primal_contour_lines.size()];
+            if (std::abs(l1.m - l2.m) > 1e-9) {
+                double x = (l2.c - l1.c) / (l1.m - l2.m);
+                double y = l1.m * x + l1.c;
+                median_contour.push_back({ glm::vec3( x, y,z_depth), glm::vec3(0.0f,1.0f,0.0f)});
+            }
+        }
+        
     }
-    std::cout << "Step 6: Transformed dual contour vertices back to primal lines." << std::endl;
+    else {
+        // --- Step 5: Compute the convex hull of the median vertices in the dual space ---
+        std::vector<Point> dual_contour = monotone_chain_convex_hull(median_dual_vertices);
+        std::cout << "Step 5: Computed the convex hull of the median region in the dual space." << std::endl;
 
-    // --- Step 7: Find the intersections of these primal lines to get the final contour vertices ---
-    std::vector<Point> primal_vertices;
-    for (size_t i = 0; i < primal_contour_lines.size(); ++i) {
-        const Lines& l1 = primal_contour_lines[i];
-        const Lines& l2 = primal_contour_lines[(i + 1) % primal_contour_lines.size()];
-        if (std::abs(l1.m - l2.m) > 1e-9) {
-            double x = (l2.c - l1.c) / (l1.m - l2.m);
-            double y = l1.m * x + l1.c;
-            primal_vertices.push_back({ x, y });
+        // --- Step 6: Transform the vertices of the dual contour back to primal lines ---
+        // A point (dx, dy) in the dual space transforms back to a line y = dx*x - dy in the primal space.
+
+        for (const auto& p : dual_contour) {
+            primal_contour_lines.push_back({ p.x, -p.y });
+        }
+        std::cout << "Step 6: Transformed dual contour vertices back to primal lines." << std::endl;
+
+        // --- Step 7: Find the intersections of these primal lines to get the final contour vertices ---
+        std::vector<Point> primal_vertices;
+        for (size_t i = 0; i < primal_contour_lines.size(); ++i) {
+            const Lines& l1 = primal_contour_lines[i];
+            const Lines& l2 = primal_contour_lines[(i + 1) % primal_contour_lines.size()];
+            if (std::abs(l1.m - l2.m) > 1e-9) {
+                double x = (l2.c - l1.c) / (l1.m - l2.m);
+                double y = l1.m * x + l1.c;
+                primal_vertices.push_back({ x, y });
+            }
+        }
+        std::cout << "Step 7: Calculated intersection points of primal lines." << std::endl;
+
+        // --- Step 8: The final contour is the convex hull of these primal intersection points ---
+        // Sorting is necessary for display, though they should already form a convex polygon.
+        std::vector<Point> final_contour = monotone_chain_convex_hull(primal_vertices);
+        std::cout << "Step 8: Final contour computed." << std::endl;
+
+
+        // --- Output the final vertices ---
+        std::cout << "\n--- Tukey Median Contour Vertices ---" << std::endl;
+        for (const auto& p : final_contour) {
+            std::cout << "  (" << p.x << ", " << p.y << ")" << std::endl;
+        }
+        for (const auto& p : final_contour) {
+            median_contour.push_back({ glm::vec3(p.x, p.y, z_depth), glm::vec3(0.0f, 1.0f, 1.0f) });
         }
     }
-    std::cout << "Step 7: Calculated intersection points of primal lines." << std::endl;
-
-    // --- Step 8: The final contour is the convex hull of these primal intersection points ---
-    // Sorting is necessary for display, though they should already form a convex polygon.
-    std::vector<Point> final_contour = monotone_chain_convex_hull(primal_vertices);
-    std::cout << "Step 8: Final contour computed." << std::endl;
-
-
-    // --- Output the final vertices ---
-    std::cout << "\n--- Tukey Median Contour Vertices ---" << std::endl;
-    for (const auto& p : final_contour) {
-        std::cout << "  (" << p.x << ", " << p.y << ")" << std::endl;
-    }
-    for (const auto& p : final_contour) {
-        median_contour.push_back({ glm::vec3(p.x, p.y, z_depth), glm::vec3(0.0f, 1.0f, 1.0f) });
-	}
-    
 }

@@ -125,7 +125,7 @@ public:
         indices.clear();
         noInstances = 0;
 		original_colors.clear(); // Clear original colors
-  
+        indices_block_size.clear();
 
     }
     void render() {

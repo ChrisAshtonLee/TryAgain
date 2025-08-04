@@ -265,56 +265,6 @@ void UI::DrawWindow()
 					}
 				}
 
-				//if (ImGui::Button("TukeyMedian"))
-				//{
-				//	std::vector<glm::vec3> normals;
-				//	std::vector<Vertex> selected_points;
-				//	if (selection) {
-				//		std::cout << "selection is true." << std::endl;
-				//		
-				//		for (int i = 0; i < currentSelections[GT.POINTS].selectedIndices.size(); i++) {
-				//			selected_points.push_back(m_points->points[currentSelections[GT.POINTS].selectedIndices[i]]);
-				//			normals.push_back(glm::vec3{ UIworldToScreen(m_points->points[currentSelections[GT.POINTS].selectedIndices[i]].position, glm::mat4(1.0f),view,proj, scr_width,scr_height),0.0f});
-				//		}
-				//	
-				//		TukeyContour TC(selected_points, k_input, true);
-				//		m_polygon->addInstance(TC.median_contour, normals);
-				//		m_polygon->updateInstances();
-				//	}
-				//	else {
-				//		float z = 0.0f;
-				//		selected_points = m_points->points;
-				//		glm::mat4 MVP = proj * view * glm::mat4(1.0f);
-				//		glm::vec4 clipSpacePos = MVP * glm::vec4(selected_points[0].position, 1.0f);
-				//		// Convert to NDC by dividing by w; the z-component is our depth
-				//		if (clipSpacePos.w != 0) {
-				//			z = clipSpacePos.z / clipSpacePos.w;
-				//		}
-				//		std::cout << "selected points size: " << selected_points.size() << std::endl;
-				//		for (int i = 0; i< selected_points.size(); i++) {
-				//			std::cout << "selected point: " << selected_points[i].position.x << " " << selected_points[i].position.y << " " << selected_points[i].position.z << std::endl;
-				//			normals.push_back(glm::vec3{ UIworldToScreen(selected_points[i].position, glm::mat4(1.0f),view,proj, scr_width,scr_height),0.0f });
-				//			selected_points[i].position = normals[i];
-				//		}
-				//		
-				//		TukeyContour TC(selected_points, k_input, true);
-				//		std::vector <Vertex> projected_points;
-				//		for (int i = 0; i < TC.median_contour.size(); i++) {
-				//			glm::vec2 screenPos = glm::vec2(TC.median_contour[i].position.x, TC.median_contour[i].position.y);
-				//			
-				//				
-				//			projected_points.push_back(Vertex{ UIscreenToWorld(screenPos, z, glm::mat4(1.0f), view, proj, scr_width, scr_height),glm::vec3(0.0f,1.0f,1.0f)});
-				//		}
-				//		for (int i = 0 ; i<TC.median_contour.size(); i++) {
-				//			std::cout << "median point: " << TC.median_contour[i].position.x << " " << TC.median_contour[i].position.y << " " << TC.median_contour[i].position.z << std::endl;
-				//		}
-				//		m_polygon->addInstance(projected_points);
-				//		m_polygon->updateInstances();
-				//	}
-				//	
-
-				//}
-
 
 
 				if (ImGui::Button("Clear Points")) {
