@@ -56,6 +56,46 @@ std::vector<Point> TukeyContour::monotone_chain_convex_hull(std::vector<Point>& 
     return lower_hull;
 }
 
+bool TukeyContour::isAbove(Point p, Lines l)
+{
+    if (p.y > l.m * p.x + l.c)
+    {
+        return true;
+    }
+    else {
+        return false;
+    }
+  
+}
+
+std::vector<Point> TukeyContour::makeUnique(std::vector<Point> arr)
+{
+    bool inlist; 
+    std::vector<int> uniqueIdxList;
+    std::vector<Point> uniqueArray;
+    for (int i = 0; i < arr.size(); ++i) {
+        inlist = false;
+        //cout << " do this once:" << i<<" " << arr.size() << endl;
+        if (uniqueIdxList.size() > 0) {
+            for (int j = 0; j < uniqueIdxList.size(); ++j) {
+                if (arr[i].x == arr[uniqueIdxList[j]].x && arr[i].y == arr[uniqueIdxList[j]].y) {
+                    inlist = true;
+                }
+            }
+            if (!inlist) {
+                uniqueIdxList.push_back(i);
+            }
+        }
+        else {
+            uniqueIdxList.push_back(i);
+        }
+    }
+    for (int k = 0; k < uniqueIdxList.size(); ++k) {
+        uniqueArray.push_back(arr[uniqueIdxList[k]]);
+    }
+    return uniqueArray;
+}
+
 
 TukeyContour::TukeyContour(std::vector<Vertex> input_points, int k, bool median= false): find_median(median) {
     // --- Input Points ---
@@ -119,60 +159,88 @@ TukeyContour::TukeyContour(std::vector<Vertex> input_points, int k, bool median=
         if (depth > max_depth) {
             max_depth = depth;
         }
-        intersections_with_depth.push_back({ p, depth });
+        if (depth == lines_above)
+        {
+            dual_k_levels.push_back({ p,depth, 1 });
+        }
+        else {
+            dual_k_levels.push_back({ p,depth,-1 });
+        }
+       // intersections_with_depth.push_back({ p, depth });
     }
     std::cout << "Step 3: Calculated depths. Maximum depth (k*) is " << max_depth << "." << std::endl;
 
     // --- Step 4: Identify the vertices of the median region in the dual space ---
-    std::vector<Point> median_dual_vertices;
-    for (const auto& p_with_depth : intersections_with_depth) {
-        if (p_with_depth.second == max_depth) {
-            median_dual_vertices.push_back(p_with_depth.first);
-            std::cout<< "  Line at (" << p_with_depth.first.x << ", " << p_with_depth.first.y 
-				<< ") with depth " << p_with_depth.second << " added to median vertices." << std::endl;
+    std::vector<DualKLevel> median_dual_vertices;
+    for (const auto& p_with_depth : dual_k_levels) {
+        if (p_with_depth.depth == max_depth) {
+            median_dual_vertices.push_back(p_with_depth);
+            std::cout<< "  Line at (" << p_with_depth.point.x << ", " << p_with_depth.point.y 
+				<< ") with depth " << p_with_depth.depth << " and type "<<p_with_depth.type<<" added to median vertices." << std::endl;
         }
     }
     std::cout << "Step 4: Identified " << median_dual_vertices.size() << " vertices with maximum depth." << std::endl;
-    std::vector<Lines> primal_contour_lines;
+    std::vector<DualLines> primal_contour_lines;
     if (median_dual_vertices.size() < 3) {
         //std::cerr << "Error: Degenerate case. Not enough vertices to form a contour." << std::endl;
         std::cout << "Too few vertices to form a contour." << std::endl;
         for (const auto& p : median_dual_vertices) {
-            primal_contour_lines.push_back({ p.x, -p.y });
+            primal_contour_lines.push_back({ p.point.x, -p.point.y, p.type });
         }
-        for (size_t i = 0; i < primal_contour_lines.size(); ++i) {
-            const Lines& l1 = primal_contour_lines[i];
-            const Lines& l2 = primal_contour_lines[(i + 1) % primal_contour_lines.size()];
-            if (std::abs(l1.m - l2.m) > 1e-9) {
-                double x = (l2.c - l1.c) / (l1.m - l2.m);
-                double y = l1.m * x + l1.c;
-                median_contour.push_back({ glm::vec3( x, y,z_depth), glm::vec3(0.0f,1.0f,0.0f)});
-            }
+        for (size_t i = 0; i < primal_contour_lines.size()-1; ++i) {
+            const DualLines& l1 = primal_contour_lines[i];
+            for (size_t j = i + 1; j < primal_contour_lines.size(); ++j) {
+                const DualLines& l2 = primal_contour_lines[j];
+                if (std::abs(l1.m - l2.m) > 1e-9) {
+                    double x = (l2.c - l1.c) / (l1.m - l2.m);
+                    double y = l1.m * x + l1.c;
+                    median_contour.push_back({ glm::vec3(x, y,z_depth), glm::vec3(0.0f,1.0f,0.0f) });
+                }
+            }   
         }
         
     }
     else {
         // --- Step 5: Compute the convex hull of the median vertices in the dual space ---
-        std::vector<Point> dual_contour = monotone_chain_convex_hull(median_dual_vertices);
+       // std::vector<Point> dual_contour = monotone_chain_convex_hull(median_dual_vertices);
         std::cout << "Step 5: Computed the convex hull of the median region in the dual space." << std::endl;
 
         // --- Step 6: Transform the vertices of the dual contour back to primal lines ---
         // A point (dx, dy) in the dual space transforms back to a line y = dx*x - dy in the primal space.
 
-        for (const auto& p : dual_contour) {
-            primal_contour_lines.push_back({ p.x, -p.y });
+        for (const auto& p : median_dual_vertices) {
+            primal_contour_lines.push_back({ p.point.x,-p.point.y,p.type });
         }
         std::cout << "Step 6: Transformed dual contour vertices back to primal lines." << std::endl;
 
         // --- Step 7: Find the intersections of these primal lines to get the final contour vertices ---
         std::vector<Point> primal_vertices;
-        for (size_t i = 0; i < primal_contour_lines.size(); ++i) {
-            const Lines& l1 = primal_contour_lines[i];
-            const Lines& l2 = primal_contour_lines[(i + 1) % primal_contour_lines.size()];
-            if (std::abs(l1.m - l2.m) > 1e-9) {
-                double x = (l2.c - l1.c) / (l1.m - l2.m);
-                double y = l1.m * x + l1.c;
-                primal_vertices.push_back({ x, y });
+       
+        for (size_t i = 0; i < primal_contour_lines.size() - 1; ++i) {
+            const DualLines& l1 = primal_contour_lines[i];
+            for (size_t j = i + 1; j < primal_contour_lines.size(); ++j) {
+                const DualLines& l2 = primal_contour_lines[j];
+                if (std::abs(l1.m - l2.m) > 1e-9) {
+                    double x = (l2.c - l1.c) / (l1.m - l2.m);
+                    double y = l1.m * x + l1.c;
+                    Point p = { x,y };
+                    bool isValid = true;
+                    for (int k = 0; k < primal_contour_lines.size(); ++k)
+                    {
+                        Lines l = { primal_contour_lines[k].m, primal_contour_lines[k].c };
+                        if (primal_contour_lines[k].type == 1) {
+                            if (isAbove(p, l)) {
+                                isValid = false;
+                            }
+                        }
+                        else {
+                            if (!isAbove(p, l)) {
+                                isValid = false;
+                            }
+                        }
+                    }
+                    if (isValid) primal_vertices.push_back(p);
+                }
             }
         }
         std::cout << "Step 7: Calculated intersection points of primal lines." << std::endl;
@@ -182,7 +250,7 @@ TukeyContour::TukeyContour(std::vector<Vertex> input_points, int k, bool median=
         std::vector<Point> final_contour = monotone_chain_convex_hull(primal_vertices);
         std::cout << "Step 8: Final contour computed." << std::endl;
 
-
+        final_contour = makeUnique(final_contour);
         // --- Output the final vertices ---
         std::cout << "\n--- Tukey Median Contour Vertices ---" << std::endl;
         for (const auto& p : final_contour) {
@@ -191,5 +259,6 @@ TukeyContour::TukeyContour(std::vector<Vertex> input_points, int k, bool median=
         for (const auto& p : final_contour) {
             median_contour.push_back({ glm::vec3(p.x, p.y, z_depth), glm::vec3(0.0f, 1.0f, 1.0f) });
         }
+       
     }
 }

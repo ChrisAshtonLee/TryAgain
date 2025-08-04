@@ -256,9 +256,17 @@ void UI::DrawWindow()
 						for (const auto& p : projected_contour_points) {
 							std::cout << "median point: " << p.position.x << " " << p.position.y << " " << p.position.z << std::endl;
 						}
-
-						m_polygon->addInstance(projected_contour_points,normals);
-						m_polygon->updateInstances();
+						if (projected_contour_points.size() >= 3) {
+							m_polygon->addInstance(projected_contour_points, normals);
+							m_polygon->updateInstances();
+						}
+						else {
+							for (auto& p : projected_contour_points)
+							{
+								m_points->addInstance(p.position.x, p.position.y, p.position.z, glm::vec3(0.0, 1.0, 0.0));
+							}
+							m_points->load();
+						}
 					}
 					else {
 						std::cout << "Not enough points to calculate Tukey Median." << std::endl;

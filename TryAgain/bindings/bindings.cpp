@@ -4,7 +4,7 @@
 #include <sstream>
 
 // Keep pybind11 stuff in its own namespace
-namespace py = pybind11;
+
 
 // --- Your C++ Game Engine Code ---
 // This is a stand-in for your actual engine classes and functions.

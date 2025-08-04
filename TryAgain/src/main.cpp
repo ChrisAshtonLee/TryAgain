@@ -32,7 +32,7 @@
 #include <memory>
 #include <common/data.h>
 #include <iostream>
-#include <Python.h>
+
 #include<glm/gtc/type_ptr.hpp>
 #define GL_SILENCE_DEPRECATION
 #if defined(IMGUI_IMPL_OPENGL_ES2)
@@ -110,9 +110,7 @@ typedef struct {
 
 int main(int, char**) {
 	camPtr = std::make_shared<Camera>(glm::vec3(-2.0f, 0.0f, 0.0f));
-	Py_Initialize();
-	PyRun_SimpleString("print('Hello from Python!')");
-	Py_Finalize();
+	
 
 
 	initGLFW(3, 3);

@@ -76,3 +76,13 @@ struct Point {
 struct Lines {
 	double m, c;
 };
+struct DualKLevel
+{
+	Point point;
+	int depth;
+	int type;
+};
+struct DualLines {
+	double m, c;
+	int type;
+};

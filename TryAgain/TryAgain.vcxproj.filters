@@ -81,9 +81,6 @@
     <ClCompile Include="src\programs\sphere.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="bindings\bindings.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\TukeyContour.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
