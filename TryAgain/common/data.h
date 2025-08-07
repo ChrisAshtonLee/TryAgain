@@ -1,6 +1,7 @@
 #pragma once
 #include <vector>
 #include <memory>
+#include <iostream>
 //#include <src/programs/points.hpp>
 
 
@@ -86,3 +87,5 @@ struct DualLines {
 	double m, c;
 	int type;
 };
+#define M_PI  3.14159265358979323846
+#define LOG(message) std::cout<<(message)<<std::endl;

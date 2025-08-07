@@ -14,6 +14,7 @@
 #include <src/rendering/material.h>
 #include <src/programs/sphere.h>
 #include<src/TukeyContour.h>
+#include<math.h>
 #include <algorithm>
 //ImGuiIO& io = ImGui::GetIO();
 UI::UI(GLFWwindow* window, const char* glsl_version, UI_DESC desc)
@@ -86,10 +87,36 @@ void UI::DrawWindow()
 		if (ImGui::Button("points")) {
 			gui_mode = 1;
 		}
+		ImGui::SameLine();
 		if (ImGui::Button("spheres")) {
 			gui_mode = 2;
 		}
-	
+		
+		std::vector<std::string> items = { currentOption,"Translate", "Scale","RotateX", "RotateY","RotateZ"};
+		int selectedDropdownIndex = 0;
+		
+		const char* previewValue = items[selectedDropdownIndex].c_str(); // Get the string for the selected item
+		if (ImGui::BeginCombo("Drag and Transform Options", previewValue))
+		{
+			for (int i = 0; i < items.size(); ++i)
+			{
+				const bool isSelected = (selectedDropdownIndex == i);
+				if (ImGui::Selectable(items[i].c_str(), isSelected))
+				{
+					selectedDropdownIndex = i; // Update the selected item
+					currentOption = items[i].c_str();
+				}
+
+				// Set the initial focus when opening the combo (optional)
+				if (isSelected)
+				{
+					ImGui::SetItemDefaultFocus();
+				}
+				
+			}
+			ImGui::EndCombo();
+		}
+
 		switch (gui_mode) {
 		case 0:
 				
@@ -194,6 +221,30 @@ void UI::DrawWindow()
 				if (ImGui::InputInt("k_level", &k_input)) {
 
 				}
+				ImGui::SetNextItemWidth(75.0f);
+				ImGui::InputInt("n", &n_input);
+				ImGui::SameLine();
+				if (ImGui::Button("generate n-sided polygon"))
+				{
+					float radius = 0.2f;
+					float theta = 2 * M_PI/n_input;
+					int num = 0;
+					std::vector<Point> polyverts;
+					for (int i = 0; i < n_input; ++i) {
+						double currentAngle = i * theta;
+						Point p;
+						p.x = 0.0f + radius * std::cos(currentAngle);
+						p.y = 0.0f + radius * std::sin(currentAngle);
+						polyverts.push_back(p);
+					}
+					for (const auto& v : polyverts) {
+						num++;
+						m_points->addInstance(v.x, v.y, 0.0f, glm::vec3(clear_color.x, clear_color.y, clear_color.z));
+					}
+					std::cout << num << " points added." << std::endl;
+					m_points->load();
+
+				}
 				if (ImGui::Button("TukeyMedian"))
 				{
 					std::vector<Vertex> selected_points;
@@ -234,7 +285,8 @@ void UI::DrawWindow()
 
 						// --- Step 3: Calculate the 2D contour ---
 						TukeyContour TC(screen_space_points, k_input, true);
-						int maxdepth = TC.max_depth;
+						maxdepth = TC.max_depth;
+						
 						for (const auto& pair : TC.intersections_with_depth) {
 							if (pair.second == maxdepth) {
 								std::cout << "Point: (" << pair.first.x << ", " << pair.first.y << ") Depth: " << pair.second << std::endl;
@@ -256,6 +308,7 @@ void UI::DrawWindow()
 						for (const auto& p : projected_contour_points) {
 							std::cout << "median point: " << p.position.x << " " << p.position.y << " " << p.position.z << std::endl;
 						}
+						
 						if (projected_contour_points.size() >= 3) {
 							m_polygon->addInstance(projected_contour_points, normals);
 							m_polygon->updateInstances();
@@ -272,7 +325,10 @@ void UI::DrawWindow()
 						std::cout << "Not enough points to calculate Tukey Median." << std::endl;
 					}
 				}
-
+				if (maxdepth != -1)
+				{
+					ImGui::Text("MaxDepth %d: ", maxdepth);
+				}
 
 
 				if (ImGui::Button("Clear Points")) {
@@ -372,10 +428,14 @@ void UI::DrawWindow()
 				}
 				break;
 			}
-	
+			switch(selectedDropdownIndex)
+			{
+			case 1: std::cout << " Translate selected." << std::endl;
+				break;
+			case 2:  std::cout << " Scale selected." << std::endl;
+			}
+
 		ImGui::End();
-		
-		
 		
 }
 

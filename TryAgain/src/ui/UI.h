@@ -85,11 +85,13 @@ private:
     Shader previewShader;
     int k_input = 0;
     int n_input = 0;
+    
+    int maxdepth = -1;
     int preview_idx = 0;
     ImVec2 startPos;
     ImVec2 currentPos;
     ImVec2 endPos;
-
+    std::string currentOption = " ";
     
     std::vector<std::vector<float>> pointData;
     std::vector<float> temp{};

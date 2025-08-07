@@ -22,7 +22,12 @@ public:
     std::vector<Lines> dual_lines;
     std::vector<Point> dual_intersections;
     std::vector<std::pair<Point, int>> intersections_with_depth;
+    std::vector<DualKLevel> dual_k_levels;
     bool isAbove(Point p1, Lines p2);
+    std::vector<Point> getContour(int maxdepth);
     std::vector<Point> makeUnique(std::vector<Point> arr);
-	std::vector<DualKLevel> dual_k_levels;
+    std::vector<std::pair<int,int>> dual_int_origin;
+    bool validIntersection(Point l);
+    bool isOn(Point p1, Lines p2);
+    std::vector<DualKLevel> vert_k_levels;
 };
