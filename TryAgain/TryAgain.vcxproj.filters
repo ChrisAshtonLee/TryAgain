@@ -84,6 +84,9 @@
     <ClCompile Include="src\TukeyContour.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="assets\image\plotter.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="glfw3.dll" />
@@ -105,6 +108,9 @@
     <None Include="assets\shaders\polygon.frag" />
     <None Include="assets\shaders\preview.vert" />
     <None Include="assets\shaders\preview.frag" />
+    <None Include="assets\shaders\dashed_line.frag" />
+    <None Include="assets\shaders\dashed_line.vert" />
+    <None Include="assets\shaders\plotpoints.frag" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\io\camera.h">
@@ -279,6 +285,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\TukeyContour.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="scripts\ResilientConsensus.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="assets\image\plotter.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

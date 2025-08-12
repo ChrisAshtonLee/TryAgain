@@ -10,7 +10,7 @@
 
 class TukeyContour {
 
-
+    bool suppress = true;
     bool find_median;
 public:
     int max_depth;

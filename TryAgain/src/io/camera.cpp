@@ -13,6 +13,7 @@ Camera::Camera(glm::vec3 position)
     sensitivity(1.0f),
     zoom(45.0f),
     cameraFront(glm::vec3(1.0f, 0.0f, 0.0f))
+    //cameraFront(glm::vec3(0.0f, 1.0f, 0.0f))
 {
     updateCameraVectors();
 }
@@ -118,5 +119,6 @@ void Camera::updateCameraVectors() {
     cameraFront = glm::normalize(direction);
 
     cameraRight = glm::normalize(glm::cross(cameraFront, glm::vec3(0.0f, 1.0f, 0.0f)));
+    //cameraRight = glm::normalize(glm::cross(cameraFront, glm::vec3(1.0f, 0.0f, 0.0f)));
     cameraUp = glm::normalize(glm::cross(cameraRight, cameraFront));
 }

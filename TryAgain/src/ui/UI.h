@@ -15,6 +15,7 @@
 #include <memory>
 #include <vector>
 #include <src/rendering/shader.h>
+#include<scripts/ResilientConsensus.hpp>  
 #include <common/data.h>
 #include <set>
 
@@ -39,12 +40,13 @@ public:
     // Example drawing methods
     void DrawDemoWindow(bool* p_open);
     void DrawWindow();
-    void DrawAnotherWindow(int opt);
+    void DrawInspectorWindow(int opt);
     void selectObjectsInBox(ImVec2 p0, ImVec2 p1);
     void UpdateCameraMatrices(glm::mat4 in_view, glm::mat4 in_proj, int in_scr_width, int in_scr_height);
     void DrawPreview( glm::vec3 pos, float radius );
     void drawSelectionBox();
     void highlightHoverSelect(ImVec2 p0);
+    void SnapToPosition(glm::vec3& previewPos);
     glm::vec2 UIworldToScreen( glm::vec3 worldPos,  glm::mat4 model,  glm::mat4 view,  glm::mat4 projection, int screenWidth, int screenHeight);
     glm::vec3 UIscreenToWorld(glm::vec2 screenPos, float z, glm::mat4 model,  glm::mat4 view,  glm::mat4 projection, int screenWidth, int screenHeight);
 	glm::vec3 getPreviewPos();
@@ -52,6 +54,8 @@ public:
     glm::vec3 vecFromString(char input[]);
     static bool sort_descend(int a, int b);
     static bool sort_ascend(int a, int b);
+    const std::vector<int>& getNormalAgents() const { return normalAgents; }
+    const std::vector<int>& getAdversaries() const { return adversaries; }
     bool previewInstance = false;
     bool previewMode = false;
     ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
@@ -61,7 +65,13 @@ public:
     bool select_mode = false;
     bool dragging = false;
     bool shaderLoaded = false;
-   
+    bool set_capture_area_mode = false;
+    bool capture_area_set = false;
+    ImVec2 capture_start_pos;
+    ImVec2 capture_end_pos;
+    void resetCaptureArea() {
+        capture_area_set = false;
+    }
     std::set<int> selectedSpheres;
     glm::mat4 view;
     glm::mat4 proj;
@@ -79,7 +89,9 @@ public:
     UI_DATA data;
     std::vector<Selection> currentSelections;
     std::vector<Selection> hoverSelections;
-   
+    std::vector<int> normalAgents;
+    std::vector<int> adversaries;
+    bool sim_running = false;
 private:
     GLuint axesVAO, axesVBO;
     Shader previewShader;
@@ -100,7 +112,8 @@ private:
     std::shared_ptr<Polygon> m_polygon{};
     std::shared_ptr<Line> m_line{};
     std::shared_ptr<Sphere> m_sphere{};
-    
+    std::shared_ptr<ResilientConsensus> m_rc{};
+
     ImDrawData * data_pointer{};
     
     

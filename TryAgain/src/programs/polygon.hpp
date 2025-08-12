@@ -29,6 +29,7 @@ public:
     std::vector <unsigned int> indices;
 	std::vector<glm::vec3> original_colors; // Store original colors for highlighting
     std::vector<int> indices_block_size;
+    std::vector<bool> selected_indices;
     Polygon() :  shader(false, "polygon.vert", "polygon.frag") {
         VAO.generate(); // Generate VAO ID
         VAO.bind();     // Bind VAO
@@ -86,6 +87,9 @@ public:
         for (int i = 0; i< vertices.size(); ++i) {
             std::cout << "Point " << i << ": " << vertices[i].x << ", " << vertices[i].y << ", " << vertices[i].z << std::endl;
 		}
+        for (int i = 0; i < noInstances; ++i) {
+            selected_indices.push_back(false);
+        }
         return true;
     }
     int getInstanceCount() {
@@ -110,6 +114,7 @@ public:
         points.erase(points.begin() + idx);
         original_colors.erase(original_colors.begin() + idx); // Remove corresponding original color
 		vertices.erase(vertices.begin() + idx);
+        selected_indices.erase(selected_indices.begin()+idx);
         int startIdx = 0;
         for (int i = 0; i < idx; ++i) {
             startIdx += indices_block_size[i];
@@ -126,6 +131,7 @@ public:
         noInstances = 0;
 		original_colors.clear(); // Clear original colors
         indices_block_size.clear();
+        selected_indices.clear();
 
     }
     void render() {
@@ -134,14 +140,96 @@ public:
         //VAO.draw(GL_TRIANGLES, (GLuint)indices.size(), GL_UNSIGNED_INT, 0, noInstances);
         //VAO.drawDistinctElements(GL_TRIANGLES, indices_block_size, GL_UNSIGNED_INT, 0, noInstances);
         VAO.drawDistinctElements(GL_TRIANGLES, indices_block_size, GL_UNSIGNED_INT, noInstances);
-       
-
     }
 
     void cleanup() {
         shader.cleanup();
         VAO.cleanup();
     }
+    //bool HighlightPolygonIfHovered(int i, glm::vec3 mousePos)
+    //{
+    //    bool selected = false;
+    //    int idx_start = 0;
+    //    std::cout << "highlight polygon called. " << std::endl;
+    //    
+    //    for (int k = 0; k < i; ++k)
+    //    {
+    //        idx_start += indices_block_size[k];
+    //    }
+    //    int idx_stop = idx_start + indices_block_size[i];
+    //    for (int p = idx_start; p < idx_stop - 3; p = p + 3)
+    //    {
+    //        if (isPointInTriangle(vertices[p], vertices[p + 1], vertices[p + 2], mousePos)){
+    //            selected = true;
+    //            std::cout << "Mouse in triangle: p1 = " << vertices[p].x << " " << vertices[p].y << " " << vertices[p].z << ", p2= " <<
+    //                vertices[p + 1].x << " " << vertices[p + 1].y << " " << vertices[p + 1].z << ", p3= " <<
+    //                vertices[p+2].x << " " << vertices[p+2].y << " " << vertices[p+2].z << std::endl;
+    //        }
+    //    }
+    //    if (selected) {
+    //        for (int p = idx_start; p < idx_stop; ++p) {
+    //            points[p].color = glm::vec3(1.0f, 1.0f, 0.0f);
+    //        }
+    //    }
+    //    else {
+    //        for (int p = idx_start; p < idx_stop; ++p) {
+    //            points[p].color = original_colors[p];
+    //        }
+    //    }
+    //    updateInstances();
+    //    return selected;
+    //    //return offsets[i];
+    //}
+
+    bool HighlightPolygonIfHovered(int i, glm::vec3 mousePos,  glm::mat4 view,  glm::mat4 projection, float scr_width,float scr_height)
+    {
+        bool selected = false;
+       // selected_indices[i] = false;
+        int idx_start = 0;
+
+        for (int k = 0; k < i; ++k)
+        {
+            idx_start += indices_block_size[k];
+        }
+        int idx_stop = idx_start + indices_block_size[i];
+        glm::mat4 projView = projection * view;
+        // Assuming a simple identity model matrix for this example
+        glm::mat4 model = glm::mat4(1.0f);
+        glm::vec4 viewport(0.0f, 0.0f, scr_width, scr_height);
+        for (int p = idx_start; p < idx_stop; p += 3)
+        {
+            // Project the 3D triangle vertices to 2D screen space
+            glm::vec3 screenPos1 = glm::project(vertices[indices[p]], model, projView, viewport);
+            glm::vec3 screenPos2 = glm::project(vertices[indices[p + 1]], model, projView, viewport);
+            glm::vec3 screenPos3 = glm::project(vertices[indices[p + 2]], model, projView, viewport);
+
+            // The mouse position is already in 2D screen coordinates, but we need to flip the Y-axis
+            // because screen coordinates typically have (0,0) at the top-left, while OpenGL's
+            // window coordinates have (0,0) at the bottom-left.
+            glm::vec3 mouseScreenPos = glm::vec3(mousePos.x, viewport[3]-mousePos.y, 0.0f);
+
+            // Now perform the point-in-triangle test in 2D screen space
+            if (isPointInTriangle(mouseScreenPos, screenPos1, screenPos2, screenPos3)) {
+                selected = true;
+                break; // Exit the loop once a triangle is found
+            }
+        }
+
+        if (selected_indices[i]) {
+            for (int p = idx_start; p < idx_stop; ++p) {
+                points[indices[p]].color = glm::vec3(1.0f, 1.0f, 0.0f); // Highlight color
+            }
+        }
+        else {
+           
+            for (int p = idx_start; p < idx_stop; ++p) {
+                points[indices[p]].color = original_colors[indices[p]]; // Original color
+            }
+        }
+        updateInstances();
+        return selected;
+    }
+
     void updateCameraMatrices(glm::mat4 projView, glm::vec3 camPos) {
         shader.activate();
         shader.setMat4("projView", projView);
@@ -241,7 +329,7 @@ public:
         return indices;
     }
     float signedTriangleArea(const glm::vec3& a, const glm::vec3& b, const glm::vec3& c) {
-		std::cout << a.x << " " << a.y << " " << a.z << std::endl;
+		
         return (a.x - c.x) * (b.y - c.y) - (a.y - c.y) * (b.x - c.x);
     }
 

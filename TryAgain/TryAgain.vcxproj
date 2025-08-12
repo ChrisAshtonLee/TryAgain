@@ -263,6 +263,7 @@
     <ClCompile Include="imgui\imgui_widgets.cpp" />
     <ClCompile Include="lib\glad.c" />
     <ClCompile Include="lib\stb.cpp" />
+    <ClCompile Include="assets\image\plotter.cpp" />
     <ClCompile Include="src\io\camera.cpp" />
     <ClCompile Include="src\io\joystick.cpp" />
     <ClCompile Include="src\io\keyboard.cpp" />
@@ -278,10 +279,13 @@
     <ClCompile Include="src\ui\UI.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="assets\shaders\dashed_line.frag" />
+    <None Include="assets\shaders\dashed_line.vert" />
     <None Include="assets\shaders\halfspace.frag" />
     <None Include="assets\shaders\halfspace.vert" />
     <None Include="assets\shaders\line.frag" />
     <None Include="assets\shaders\line.vert" />
+    <None Include="assets\shaders\plotpoints.frag" />
     <None Include="assets\shaders\points.frag" />
     <None Include="assets\shaders\points.vert" />
     <None Include="assets\shaders\polygon.frag" />
@@ -338,6 +342,8 @@
     <ClInclude Include="imgui\imstb_rectpack.h" />
     <ClInclude Include="imgui\imstb_textedit.h" />
     <ClInclude Include="imgui\imstb_truetype.h" />
+    <ClInclude Include="assets\image\plotter.h" />
+    <ClInclude Include="scripts\ResilientConsensus.hpp" />
     <ClInclude Include="src\ConvexHull.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='mathapp|x64'">false</ExcludedFromBuild>

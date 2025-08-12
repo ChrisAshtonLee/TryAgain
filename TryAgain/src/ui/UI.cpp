@@ -16,6 +16,7 @@
 #include<src/TukeyContour.h>
 #include<math.h>
 #include <algorithm>
+
 //ImGuiIO& io = ImGui::GetIO();
 UI::UI(GLFWwindow* window, const char* glsl_version, UI_DESC desc)
 	: io(ImGui::GetIO()), // Initialize ImGuiIO reference  
@@ -23,7 +24,8 @@ UI::UI(GLFWwindow* window, const char* glsl_version, UI_DESC desc)
 	m_polygon(desc.polygon), // Initialize m_polygon from UI_DESC  
 	m_line(desc.line), // Initialize m_line from UI_DESC  
 	m_halfspace(desc.halfspace), // Initialize m_halfspace from UI_DESC  
-	m_sphere(desc.sphere) // Initialize m_sphere from UI_DESC  
+	m_sphere(desc.sphere), // Initialize m_sphere from UI_DESC  
+	m_rc(desc.rc)
 {
 	currentSelections.push_back(Selection{ m_points });
 	currentSelections.push_back(Selection{ m_sphere });
@@ -72,11 +74,11 @@ void UI::DrawWindow()
 {
 	
 	static bool placeSphereMode = false;
-	Vertex v1 = { glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 1.0f) };
+	/*Vertex v1 = { glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 1.0f) };
 	Vertex v2 = { glm::vec3(0.0f, 0.4f, 0.0f), glm::vec3(0.0f, 1.0f, 1.0f) };
 	Vertex v3 = { glm::vec3(0.4f, 0.4f, 0.0f), glm::vec3(0.0f, 1.0f, 1.0f) };
 	Vertex v4 = { glm::vec3(0.4f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 1.0f) };
-	std::vector<Vertex> vertices = { v1, v2, v3, v4 };
+	std::vector<Vertex> vertices = { v1, v2, v3, v4 };*/
 	
 
 	ImGui::Begin("Plotting Options");
@@ -126,9 +128,9 @@ void UI::DrawWindow()
 				ImGui::InputText("a3", data.input3, IM_ARRAYSIZE(data.input3));
 				ImGui::ColorEdit3("Color", (float*)&clear_color);
 
-				if (ImGui::Button("Color")) {
+				/*if (ImGui::Button("Color")) {
 					std::cout << "color " << clear_color.w << " " << clear_color.x << " " << clear_color.z << " " << clear_color.z << std::endl;
-				}
+				}*/
 				ImGui::SameLine();
 				if (ImGui::Button("Enter")) {
 
@@ -190,6 +192,7 @@ void UI::DrawWindow()
 						m_points->addInstance(previewPos.x, previewPos.y, previewPos.z, glm::vec3(0.0,1.0,0.0f));
 						m_points->load();
 					}
+					SnapToPosition(previewPos);
 					m_points->points[preview_idx].position = previewPos;	
 					m_points->load();
 					if ( ImGui::IsMouseClicked(0)) {
@@ -359,11 +362,13 @@ void UI::DrawWindow()
 						m_points->unhighlight_selected(currentSelections[0].selectedIndices);
 						
 						currentSelections[0].selectedIndices.clear(); // Clear selection after polygon creation
+						selection = false;
 					}
 					else {
 						std::cout << "Not enough points to create a polygon." << std::endl;
 					}
 				}
+				
 				break;
 			case 2:
 				ImGui::Text("Sphere:");
@@ -439,7 +444,7 @@ void UI::DrawWindow()
 		
 }
 
-void UI::DrawAnotherWindow(int opt)
+void UI::DrawInspectorWindow(int opt)
 {
 	if (opt == 1) {
 		ImGui::SetNextWindowPos(ImVec2(100, 50), ImGuiCond_FirstUseEver);
@@ -463,24 +468,105 @@ void UI::DrawAnotherWindow(int opt)
 		else {
 			ImGui::Text("selection = false");
 		}
+		if (select_mode) {
+			ImGui::Text("select mode = true");
+		}
+		else {
+			ImGui::Text("select mode = false");
+		}
+	
 		
 		//ImGui::Text("Selections: (%.1f , %.1f, %.1f)", mousePos.x, mousePos.y, glm::length(previewDepth));
 		ImGui::End();
 		data_pointer = ImGui::GetDrawData();
 	}
+	if (opt == 2)
+	{
+		ImGui::SetNextWindowPos(ImVec2(100, 50), ImGuiCond_FirstUseEver);
+		ImGui::Begin("Simulation Setup");
+		Selection& sel = currentSelections[0];
+		if (ImGui::Button("Select Normal Agents")) {
+			ImGui::Text("Selected Instances: %d", sel.selectedIndices.size());
+			if (sel.selectedIndices.size() > 0) {
+				for (int idx : sel.selectedIndices) {
+					normalAgents.push_back(idx);
+					
+				}
+				
+			}
+		}
+		ImGui::SameLine();
+		if (ImGui::Button("Select Adversarial Agents")) {
+
+			ImGui::Text("Selected Instances: %d", sel.selectedIndices.size());
+			if (sel.selectedIndices.size() > 0) {
+				for (int idx : sel.selectedIndices) {
+					adversaries.push_back(idx);
+				}
+				
+			}
+		}
+		for (int idx : normalAgents) {
+			glm::vec3 worldPos = sel.m_geometryType->getInstanceWorldCoords(idx);
+			
+			ImGui::Text("Normal Agent %d: (%.2f, %.2f, %.2f)", idx, worldPos.x, worldPos.y, worldPos.z);
+		}
+		for (int idx : adversaries) {
+			glm::vec3 worldPos = sel.m_geometryType->getInstanceWorldCoords(idx);
+
+			ImGui::Text("Adversaries %d: (%.2f, %.2f, %.2f)", idx, worldPos.x, worldPos.y, worldPos.z);
+		}
+		if (ImGui::Button("Run Simulation")) {
+		
+			//m_rc = std::make_shared<ResilientConsensus>(normalAgents, adversaries, m_points);
+
+			//m_rc->start_sim(100);
+			sim_running = true;
+		}
+		ImGui::Checkbox("Set Capture Area", &set_capture_area_mode);
+
+		if (select_mode || set_capture_area_mode) {
+			drawSelectionBox();
+		}
+	
+		ImGui::End();
+		data_pointer = ImGui::GetDrawData();
+	}
 }
+//glm::vec3 UI::getPreviewPos()
+//{
+//	
+//	ImVec2 mousePos = ImGui::GetMousePos();
+//	
+//	previewPos = (mousePos.x / cameraData.scr_width * 2.0f - 1.0f) * cameraData.Right
+//		- (mousePos.y / cameraData.scr_height * 2.0f - 1.0f) * cameraData.Up;
+//
+//	previewPos += previewDepth;
+//	previewPos = glm::vec(previewPos);
+//	return previewPos;
+//	
+//}
+
 glm::vec3 UI::getPreviewPos()
 {
-	
+	// 1. Get the current mouse position from ImGui.
 	ImVec2 mousePos = ImGui::GetMousePos();
-	
-	previewPos = (mousePos.x / cameraData.scr_width * 2.0f - 1.0f) * cameraData.Right
-		- (mousePos.y / cameraData.scr_height * 2.0f - 1.0f) * cameraData.Up;
 
+	// 2. Define a default depth. 0.5f places the point halfway 
+	//    between the near and far clipping planes.
+	float winZ = 0.5f;
+
+	previewPos = UIscreenToWorld(
+		glm::vec2(mousePos.x, mousePos.y),
+		winZ,
+		glm::mat4(1.0f),
+		view,
+		proj,
+		scr_width,
+		scr_height
+	);
 	previewPos += previewDepth;
-	previewPos = glm::vec(previewPos);
 	return previewPos;
-	
 }
 glm::vec3 UI::vecFromString(char input[])
 {
@@ -494,57 +580,92 @@ glm::vec3 UI::vecFromString(char input[])
 	return glm::vec3({ vec[0],vec[1],vec[2] });
 }
 void UI::drawSelectionBox() {
-	
-	if (ImGui::IsMouseClicked(0)) {
-		startPos = ImGui::GetMousePos();
-		//dragging = true;
-
-	}
-	if (ImGui::IsMouseDragging(0)) {
-		dragging = true;
-		currentPos = ImGui::GetMousePos();
-		ImDrawList* draw_list = ImGui::GetForegroundDrawList();
-		draw_list->AddRect(startPos, currentPos, IM_COL32(0, 255, 0, 255));
-	}
-	if (dragging && ImGui::IsMouseReleased(0)) {
-		endPos = ImGui::GetMousePos();
-		dragging = false;
-		
-		selectObjectsInBox(startPos, endPos);
-	
-		// Perform selection here
-	}
-	if (!ImGui::IsMouseDragging(0) && !dragging &&!selection)
-	{
-		currentPos = ImGui::GetMousePos();
-		highlightHoverSelect(currentPos);
-	}
-	
-	if (select_mode && !dragging && selection && ImGui::IsMouseClicked(0) && !ImGui::GetIO().WantCaptureMouse) {
-		for (Selection& sel : currentSelections) {
-		
-			sel.m_geometryType->unhighlight_selected(sel.selectedIndices);
-		
-			sel.selectedIndices.clear();
+	if (set_capture_area_mode) {
+		if (ImGui::IsMouseClicked(0))
+		{
+			startPos = ImGui::GetMousePos();
 		}
-		//m_sphere->unhighlight_selected(std::vector<int>(selectedSpheres.begin(), selectedSpheres.end()));
-		selection = false;
+		if (ImGui::IsMouseDragging(0) && !ImGui::IsAnyItemHovered()) {
+			
+			dragging = true;
+			currentPos = ImGui::GetMousePos();
+			ImDrawList* draw_list = ImGui::GetForegroundDrawList();
+			// Draw a red rectangle to indicate capture mode
+			draw_list->AddRect(startPos, currentPos, IM_COL32(255, 0, 0, 255), 0.0f, 0, 2.0f);
+		}
+		
+		if (ImGui::IsMouseReleased(0)&& dragging) {
+			dragging = false;
+			// Store the coordinates and set the flag
+			capture_start_pos = startPos;
+			capture_end_pos = ImGui::GetMousePos();
+			capture_area_set = true;
+			startPos = ImVec2(0, 0);
+			endPos = ImVec2(0, 0);
+			//set_capture_area_mode = false;
+		}
 	}
-	if (select_mode && selection && ImGui::IsKeyPressed(ImGuiKey_Delete)) {
-		for (auto& sel : currentSelections) {
+	else {
+		if (ImGui::IsMouseClicked(0)) {
+			startPos = ImGui::GetMousePos();
+			//dragging = true;
 
-			// --- FIX: Sort indices in descending (reverse) order before deleting ---
-			std::sort(sel.selectedIndices.begin(), sel.selectedIndices.end(), std::greater<int>());
+		}
+		if (ImGui::IsMouseDragging(0)) {
+			dragging = true;
+			currentPos = ImGui::GetMousePos();
+			ImDrawList* draw_list = ImGui::GetForegroundDrawList();
+			draw_list->AddRect(startPos, currentPos, IM_COL32(0, 255, 0, 255));
+		}
+		if (dragging && ImGui::IsMouseReleased(0)) {
+			endPos = ImGui::GetMousePos();
+			dragging = false;
 
-			for (auto& i : sel.selectedIndices) {
-				// Now, the highest index is deleted first, keeping other indices valid.
-				sel.m_geometryType->deleteInstance(i);
+			selectObjectsInBox(startPos, endPos);
+
+			// Perform selection here
+		}
+		if (!ImGui::IsMouseDragging(0) && !dragging && !selection)
+		{
+			currentPos = ImGui::GetMousePos();
+			highlightHoverSelect(currentPos);
+		}
+
+		if (select_mode && !dragging && selection && ImGui::IsMouseClicked(0) && !ImGui::GetIO().WantCaptureMouse) {
+			for (Selection& sel : currentSelections) {
+
+				sel.m_geometryType->unhighlight_selected(sel.selectedIndices);
+				sel.selectedIndices.clear();
+			}
+			//m_sphere->unhighlight_selected(std::vector<int>(selectedSpheres.begin(), selectedSpheres.end()));
+			selection = false;
+
+		}
+		if (select_mode && selection && ImGui::IsKeyPressed(ImGuiKey_Delete)) {
+			for (auto& sel : currentSelections) {
+
+				// --- FIX: Sort indices in descending (reverse) order before deleting ---
+				std::sort(sel.selectedIndices.begin(), sel.selectedIndices.end(), std::greater<int>());
+
+				for (auto& i : sel.selectedIndices) {
+					// Now, the highest index is deleted first, keeping other indices valid.
+					sel.m_geometryType->deleteInstance(i);
+				}
+
+				sel.selectedIndices.clear();
 			}
 
-			sel.selectedIndices.clear();
+			selection = false;
 		}
-
-		selection = false;
+	}
+	if (capture_area_set) {
+		
+		ImDrawList* draw_list = ImGui::GetForegroundDrawList();
+		draw_list->AddRect(capture_start_pos, capture_end_pos, IM_COL32(255, 255, 0, 255), 0.0f, 0, 2.0f);
+		if (ImGui::IsMouseClicked(0) && !ImGui::IsAnyItemHovered)
+		{
+			capture_area_set = false;
+		}
 	}
 }
 void UI::highlightHoverSelect(ImVec2 p0) {
@@ -553,7 +674,8 @@ void UI::highlightHoverSelect(ImVec2 p0) {
 	// Get the min/max corners of the selection box
 	float minX = p0.x - 5.0, maxX = p0.x + 5.0;
 	float minY = p0.y - 5.0, maxY = p0.y + 5.0;
-
+	float r;
+	glm::vec3 cursor_world_pos = getPreviewPos();
 	// For each selection, project its position to screen space and check if inside box
 	for (int i = 0; i < hoverSelections.size(); i++) {
 
@@ -597,12 +719,13 @@ void UI::highlightHoverSelect(ImVec2 p0) {
 					sel.selectedIndices.erase(it, sel.selectedIndices.end());
 				
 					sel.m_geometryType->unhighlight_selected({ idx });
+					std::cout << " point " << idx << " unhighlighted." << std::endl;
 				}
 				break;
 			case 1: //Spheres
 
 				glm::vec2 r_c = UIworldToScreen(worldPos + glm::vec3(0.0f, (float)m_sphere->sizes[idx].x, 0.0f), view, glm::mat4(1.0f), proj, scr_width, scr_height); // Assuming uniform size for spheres
-				float r = glm::distance(screenPos, r_c);
+				r = glm::distance(screenPos, r_c);
 
 
 				if (glm::distance(glm::vec2(p0.x, p0.y), screenPos) <= r) {
@@ -636,10 +759,139 @@ void UI::highlightHoverSelect(ImVec2 p0) {
 					sel.m_geometryType->unhighlight_selected({ idx });
 				}
 				break;
+			case 2: //polygons
+
+				
+			
+				
+				if (m_polygon->HighlightPolygonIfHovered(idx, glm::vec3(p0.x,p0.y,0.0f), view, proj, scr_width, scr_height))
+				{
+					
+					if (std::find(sel.selectedIndices.begin(), sel.selectedIndices.end(), idx) == sel.selectedIndices.end())
+					{
+						sel.selectedIndices.push_back(idx);
+					}
+					if (ImGui::IsMouseClicked(0))
+					{
+						sel2.selectedIndices.push_back(idx);
+						std::cout << "object hovered selected " << idx << std::endl;
+						break;
+					}
+					for (int s : sel.selectedIndices) {
+						m_polygon->selected_indices[s] = true;
+					}
+					
+				}
+				else if (sel2.selectedIndices.size() > 0 && ImGui::IsMouseClicked(0))
+				{	
+					for (int s : sel2.selectedIndices) {
+						m_polygon->selected_indices[s] = false;
+					}
+					
+					// If the object is hovered but was not previously selected, add it to selection
+					sel.selectedIndices.clear();
+					sel2.selectedIndices.clear();
+					std::cout << "selections cleared" << std::endl;
+
+				}
+				else if ((std::find(sel.selectedIndices.begin(), sel.selectedIndices.end(), idx) != sel.selectedIndices.end())
+					&& !(std::find(sel2.selectedIndices.begin(), sel2.selectedIndices.end(), idx) != sel2.selectedIndices.end()))
+				{
+					for (int s : sel.selectedIndices) {
+						m_polygon->selected_indices[s] = false;
+					}
+					// If the object is not hovered but was previously selected, remove it from selection
+					auto it = std::remove(sel.selectedIndices.begin(), sel.selectedIndices.end(), idx);
+					sel.selectedIndices.erase(it, sel.selectedIndices.end());
+					
+					//sel.m_geometryType->unhighlight_selected({ idx });
+				}
+
+				else {
+					sel.selectedIndices.clear();
+				}
+				break;
 			}
+			
+
 			sel.m_geometryType->highlight_selected(sel.selectedIndices);
 
 		}
+	}
+}
+
+void UI::SnapToPosition(glm::vec3& previewPos)
+{
+	ImDrawList* draw_list = ImGui::GetForegroundDrawList();
+	const float snap_threshold_xy = 15.0f; // Snap sensitivity for X and Y in screen pixels
+	const float snap_threshold_z = 0.01f;  // Snap sensitivity for Z in normalized device coordinates
+	bool snapped_x = false;
+	bool snapped_y = false;
+	bool snapped_z = false;
+
+	// Project the current preview position to screen space to get its original screen coords and depth
+	glm::mat4 mvp = proj * view * glm::mat4(1.0f);
+	glm::vec4 clipPos = mvp * glm::vec4(previewPos, 1.0f);
+	float original_winZ = ((clipPos.z / clipPos.w) + 1.0f) * 0.5f; // Original window depth for unprojection
+
+	glm::vec2 previewScreenPos = UIworldToScreen(previewPos, glm::mat4(1.0f), view, proj, scr_width, scr_height);
+
+	// These will hold the final snapped coordinates
+	glm::vec2 snappedScreenPos = previewScreenPos;
+	float snapped_winZ = original_winZ;
+
+	// Iterate through all selectable object types
+	for (const auto& sel : currentSelections) {
+		int instance_count = sel.m_geometryType->getInstanceCount();
+		for (int i = 0; i < instance_count; ++i) {
+			// Don't snap to the preview object itself
+			if (previewInstance && i == preview_idx && sel.m_geometryType == m_points) continue;
+			if (previewInstance && i == preview_idx && sel.m_geometryType == m_sphere) continue;
+
+			glm::vec3 worldPos = sel.m_geometryType->getInstanceWorldCoords(i);
+			glm::vec2 objectScreenPos = UIworldToScreen(worldPos, glm::mat4(1.0f), view, proj, scr_width, scr_height);
+
+			// Calculate the object's window depth
+			glm::vec4 objectClipPos = mvp * glm::vec4(worldPos, 1.0f);
+			float object_winZ = ((objectClipPos.z / objectClipPos.w) + 1.0f) * 0.5f;
+
+			float dx = std::abs(previewScreenPos.x - objectScreenPos.x);
+			float dy = std::abs(previewScreenPos.y - objectScreenPos.y);
+			float dz = std::abs(original_winZ - object_winZ);
+
+			// Check for horizontal (Y-axis) snap
+			if (dy < snap_threshold_xy) {
+				snappedScreenPos.y = objectScreenPos.y;
+				draw_list->AddLine(
+					ImVec2(objectScreenPos.x, objectScreenPos.y),
+					ImVec2(snappedScreenPos.x, snappedScreenPos.y),
+					IM_COL32(0, 255, 0, 255), 1.5f);
+				snapped_y = true;
+			}
+
+			// Check for vertical (X-axis) snap
+			if (dx < snap_threshold_xy) {
+				snappedScreenPos.x = objectScreenPos.x;
+				draw_list->AddLine(
+					ImVec2(objectScreenPos.x, objectScreenPos.y),
+					ImVec2(snappedScreenPos.x, snappedScreenPos.y),
+					IM_COL32(0, 255, 0, 255), 1.5f);
+				snapped_x = true;
+			}
+
+			// ? Check for depth (Z-axis) snap
+			if (dz < snap_threshold_z) {
+				snapped_winZ = object_winZ; // Snap the depth value
+				// Draw a circle on the aligned object to indicate a Z-snap
+				draw_list->AddCircle(ImVec2(objectScreenPos.x, objectScreenPos.y), 12.0f, IM_COL32(0, 255, 0, 255), 12, 2.0f);
+				snapped_z = true;
+			}
+		}
+	}
+
+	// If any snap occurred, unproject the new screen position back to world space
+	if (snapped_x || snapped_y || snapped_z) {
+		previewPos = UIscreenToWorld(snappedScreenPos, snapped_winZ, glm::mat4(1.0f), view, proj, scr_width, scr_height);
 	}
 }
 
@@ -670,16 +922,18 @@ void UI::selectObjectsInBox( ImVec2 p0, ImVec2 p1 ) {
 			
 			if (screenPos.x >= minX && screenPos.x <= maxX && screenPos.y >= minY && screenPos.y <= maxY) {
 				sel.selectedIndices.push_back(idx);
-				std::cout << "object selected " << idx << std::endl;
 				selection = true;
 			}
 		}
 		
 		//m_sphere->highlight_selected(std::vector<int>(selectedSpheres.begin(), selectedSpheres.end()));
 		sel.m_geometryType->highlight_selected(sel.selectedIndices);
-		std::cout << "selected objects highlighted: " << std::endl;
-	
-		std::cout<<std::endl;
+		if (i == 0) {
+			for (int j : sel.selectedIndices) {
+				std::cout << j << " selected and highlighted." << std::endl;
+			}
+		}
+		
 	}
 }
 

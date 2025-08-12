@@ -13,6 +13,7 @@ class Halfspace;
 class Rectangle;
 class Polygon;
 class Program;
+class ResilientConsensus;
 
 struct Selection
 {
@@ -56,6 +57,7 @@ struct UI_DESC
 	std::shared_ptr<Halfspace> halfspace = {};
 	std::shared_ptr<Rectangle> rectangle = {};
 	std::shared_ptr<Sphere> sphere = {};
+	std::shared_ptr<ResilientConsensus> rc = {};
 	
 };
 struct CameraData {
@@ -86,6 +88,12 @@ struct DualKLevel
 struct DualLines {
 	double m, c;
 	int type;
+};
+
+struct DashVertex {
+	glm::vec3 position;
+	glm::vec3 color;
+	float line_distance;
 };
 #define M_PI  3.14159265358979323846
 #define LOG(message) std::cout<<(message)<<std::endl;

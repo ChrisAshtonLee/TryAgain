@@ -28,7 +28,7 @@ public:
     int noInstances = 0;
     std::vector<Vertex> points;
     
-    Points(): shader(false, "points.vert", "points.frag")
+    Points(): shader(false, "points.vert", "plotpoints.frag")
     {
        
         std::vector<glm::vec3> sizes;
@@ -102,13 +102,14 @@ public:
        // VAO["VBO"].setAttPointer<Vertex>(0, 3, GL_FLOAT, sizeof(Vertex), 0);
        // VAO["VBO"].setAttPointer<Vertex>(1, 3, GL_FLOAT, sizeof(Vertex), sizeof(glm::vec3));
 
-        VAO["VBO"].setData<Vertex>((GLuint)noInstances, &points[0], GL_STATIC_DRAW);
+        VAO["VBO"].setData<Vertex>((GLuint)noInstances, &points[0], GL_DYNAMIC_DRAW);
         //VAO["VBO"].setAttPointer<Vertex>(0, 3, GL_FLOAT, sizeof(Vertex), 0);
         //VAO["VBO"].setAttPointer<Vertex>(1, 3, GL_FLOAT, sizeof(Vertex), sizeof(glm::vec3));
        
 
 
     }
+  
     void clear() {
         points.clear();
         indices.clear();
@@ -135,17 +136,19 @@ public:
 			
         }
         // Update buffer with new colors
-        VAO["VBO"].setData<Vertex>((GLuint)noInstances, &points[0], GL_STATIC_DRAW);
+        load();
+        // VAO["VBO"].setData<Vertex>((GLuint)noInstances, &points[0], GL_STATIC_DRAW);
     }
 
     void unhighlight_selected(std::vector<int> indices)  {
-        VAO["VBO"].bind();
+        //VAO["VBO"].bind();
 		
         for (int idx : indices) {
             points[idx].color = original_colors[idx]; // restore original color
         }
         // Update buffer with restored colors
-        VAO["VBO"].setData<Vertex>((GLuint)noInstances, &points[0], GL_STATIC_DRAW);
+        //VAO["VBO"].setData<Vertex>((GLuint)noInstances, &points[0], GL_STATIC_DRAW);
+        load();
     }
     void cleanup() {
         shader.cleanup();

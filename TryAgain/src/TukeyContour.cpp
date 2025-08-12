@@ -157,16 +157,16 @@ TukeyContour::TukeyContour(std::vector<Vertex> input_points, int k, bool median=
         return;
     }
 
-    std::cout << "Starting Tukey Median Contour Calculation..." << std::endl;
+    if (!suppress) std::cout << "Starting Tukey Median Contour Calculation..." << std::endl;
 
     // --- Step 1: Duality Transform ---
     // A point (px, py) in the primal space is transformed into a line y = px*x - py in the dual space.
    
     for (const auto& p : primal_points) {
-		std::cout << "Primal Point: (" << p.x << ", " << p.y << ")" << std::endl;
+		if (!suppress) std::cout << "Primal Point: (" << p.x << ", " << p.y << ")" << std::endl;
         dual_lines.push_back({ p.x, -p.y });
     }
-    std::cout << "Step 1: Transformed " << primal_points.size() << " points to dual lines." << std::endl;
+ //   std::cout << "Step 1: Transformed " << primal_points.size() << " points to dual lines." << std::endl;
 
     // --- Step 2: Find all intersection points of the dual lines ---
     
@@ -184,8 +184,8 @@ TukeyContour::TukeyContour(std::vector<Vertex> input_points, int k, bool median=
                 }
             }
             else {
-                std::cout << "vertical line encountered." << std::endl;
-                LOG("vertical line encountered.");
+               // std::cout << "vertical line encountered." << std::endl;
+               // LOG("vertical line encountered.");
                 float xPos = primal_points[j].x;
                 int left = 0; int right = 0;
                 for (int pp = 0; pp < primal_points.size(); ++pp) {
@@ -209,7 +209,7 @@ TukeyContour::TukeyContour(std::vector<Vertex> input_points, int k, bool median=
             }
         }
     }
-    std::cout << "Step 2: Found " << dual_intersections.size() << " intersection points in the dual space." << std::endl;
+  //  std::cout << "Step 2: Found " << dual_intersections.size() << " intersection points in the dual space." << std::endl;
 
     // --- Step 3: Calculate the depth of each intersection in the dual arrangement ---
     max_depth = 0;
@@ -247,7 +247,7 @@ TukeyContour::TukeyContour(std::vector<Vertex> input_points, int k, bool median=
         }
        // intersections_with_depth.push_back({ p, depth });
     }
-    std::cout << "Step 3: Calculated depths. Maximum depth (k*) is " << max_depth << "." << std::endl;
+  //  std::cout << "Step 3: Calculated depths. Maximum depth (k*) is " << max_depth << "." << std::endl;
 
     // --- Step 4: Identify the vertices of the median region in the dual space ---
     std::vector<Point> final_contour = getContour(max_depth);
@@ -255,7 +255,7 @@ TukeyContour::TukeyContour(std::vector<Vertex> input_points, int k, bool median=
     {
         median_contour.clear();
         max_depth--; 
-        std::cout << "contour with depth " << max_depth + 1 << " is empty, trying depth " << max_depth << std::endl;
+       // std::cout << "contour with depth " << max_depth + 1 << " is empty, trying depth " << max_depth << std::endl;
         if (max_depth < 0) {
             std::cout << "no contour found." << std::endl;
             break;
@@ -265,10 +265,12 @@ TukeyContour::TukeyContour(std::vector<Vertex> input_points, int k, bool median=
         
     }
         // --- Output the final vertices ---
-        std::cout << "\n--- Tukey Median Contour Vertices ---" << std::endl;
+     //   std::cout << "\n--- Tukey Median Contour Vertices ---" << std::endl;
+    if (!suppress) {
         for (const auto& p : final_contour) {
             std::cout << "  (" << p.x << ", " << p.y << ")" << std::endl;
         }
+    }
         for (const auto& p : final_contour) {
             median_contour.push_back({ glm::vec3(p.x, p.y, z_depth), glm::vec3(0.0f, 1.0f, 1.0f) });
         }
@@ -309,13 +311,13 @@ std::vector<Point> TukeyContour::getContour(int k)
 
     }
     if (!upper || !lower) {
-        std::cout << "boundary incomplete." << std::endl;
+        if (!suppress) std::cout << "boundary incomplete." << std::endl;
         std::vector<Point> emptylist;
-        std::cout << "size of emptylist: " << emptylist.size() << std::endl;
+        if (!suppress) std::cout << "size of emptylist: " << emptylist.size() << std::endl;
         return emptylist;
 
     }
-    std::cout << "Step 4: Identified " << median_dual_vertices.size() << " vertices with maximum depth." << std::endl;
+  //  std::cout << "Step 4: Identified " << median_dual_vertices.size() << " vertices with maximum depth." << std::endl;
     std::vector<DualLines> primal_contour_lines;
    
     if (median_dual_vertices.size() < 3) {
@@ -341,7 +343,7 @@ std::vector<Point> TukeyContour::getContour(int k)
     else {
         // --- Step 5: Compute the convex hull of the median vertices in the dual space ---
        // std::vector<Point> dual_contour = monotone_chain_convex_hull(median_dual_vertices);
-        std::cout << "Step 5: Computed the convex hull of the median region in the dual space." << std::endl;
+    //    std::cout << "Step 5: Computed the convex hull of the median region in the dual space." << std::endl;
 
         // --- Step 6: Transform the vertices of the dual contour back to primal lines ---
         // A point (dx, dy) in the dual space transforms back to a line y = dx*x - dy in the primal space.
@@ -349,11 +351,11 @@ std::vector<Point> TukeyContour::getContour(int k)
         for (const auto& p : median_dual_vertices) {
              
             primal_contour_lines.push_back({ p.point.x,-p.point.y,p.type });
-            std::cout << "primal contour line m: " << p.point.x << " c: " << -p.point.y << std::endl;
+         //  std::cout << "primal contour line m: " << p.point.x << " c: " << -p.point.y << std::endl;
         }
       
      
-        std::cout << "Step 6: Transformed dual contour vertices back to primal lines." << std::endl;
+      //  std::cout << "Step 6: Transformed dual contour vertices back to primal lines." << std::endl;
        
         // --- Step 7: Find the intersections of these primal lines to get the final contour vertices ---
         std::vector<Point> primal_vertices;
@@ -439,18 +441,20 @@ std::vector<Point> TukeyContour::getContour(int k)
                     }
             }
         }
-        std::cout << "Step 7: Calculated intersection points of primal lines." << std::endl;
+     //   std::cout << "Step 7: Calculated intersection points of primal lines." << std::endl;
 
         // --- Step 8: The final contour is the convex hull of these primal intersection points ---
         // Sorting is necessary for display, though they should already form a convex polygon.
         std::vector<Point> final_contour = monotone_chain_convex_hull(primal_vertices);
-        std::cout << "Step 8: Final contour computed." << std::endl;
+     //   std::cout << "Step 8: Final contour computed." << std::endl;
       
         final_contour = makeUnique(final_contour);
-        std::cout << "unique points of final contour: " << std::endl;
-        for (auto& s : final_contour)
-        {
-            std::cout <<s.x<<" , "<<s.y<<" "<<std::endl;
+        if (!suppress) {
+            std::cout << "unique points of final contour: " << std::endl;
+            for (auto& s : final_contour)
+            {
+                std::cout << s.x << " , " << s.y << " " << std::endl;
+            }
         }
         return final_contour;
     }

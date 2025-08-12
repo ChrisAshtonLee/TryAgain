@@ -6,6 +6,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+#include <assets/image/stb_image_write.h>
 #include <fstream>
 #include <sstream>
 #include <streambuf>
@@ -18,6 +19,7 @@
 #include "programs/points.hpp"
 #include "programs/line.hpp"
 #include "programs/polygon.hpp"
+#include <assets/image/plotter.h>
 #include "io/camera.h"
 #include "io/keyboard.h"
 #include "io/mouse.h"
@@ -32,6 +34,7 @@
 #include <memory>
 #include <common/data.h>
 #include <iostream>
+#include <scripts/ResilientConsensus.hpp>
 
 #include<glm/gtc/type_ptr.hpp>
 #define GL_SILENCE_DEPRECATION
@@ -68,6 +71,10 @@ glm::vec2 endPos;
 glm::vec2 currentPos;
 bool dragging = false;
 bool preview;
+bool sim_init = false;
+bool start_capture_done = false;
+bool start_capture_pending = false;
+bool end_capture_pending = false;
 CameraData camData;
 GLFWwindow* window = nullptr;
 
@@ -97,7 +104,10 @@ std::shared_ptr<Halfspace> halfspacePtr;
 std::shared_ptr<Polygon> polygonPtr;
 std::shared_ptr<Line> linePtr;
 std::shared_ptr<Sphere> spherePtr;
+std::shared_ptr<ResilientConsensus> rcPtr;
+std::shared_ptr<Plotter> plotterPtr;
 std::vector<std::pair<float, float>> random_points;
+
 UI_DESC desc;
 UI* uiPtr = nullptr;
 
@@ -110,7 +120,7 @@ typedef struct {
 
 int main(int, char**) {
 	camPtr = std::make_shared<Camera>(glm::vec3(-2.0f, 0.0f, 0.0f));
-	
+	//camPtr = std::make_shared<Camera>(glm::vec3(0.0f, -2.0f, 0.0f));
 
 
 	initGLFW(3, 3);
@@ -140,12 +150,13 @@ int main(int, char**) {
 	linePtr = std::make_shared<Line>();
 	
 	spherePtr = std::make_shared<Sphere>(10);
-
+	plotterPtr = std::make_shared<Plotter>(pointsPtr,scr_width, scr_height);
 	desc.points = pointsPtr;
 	desc.line = linePtr;
 	desc.polygon = polygonPtr;
 	desc.halfspace = halfspacePtr;
 	desc.sphere = spherePtr;
+	desc.rc = rcPtr;
 	
 	glfwSwapInterval(1); // Enable vsync
 
@@ -162,8 +173,13 @@ int main(int, char**) {
 	int k_input =0;
 	int n_input = 0;
 	
-	ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
+
+	//Plotting
 	
+	ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
+
+	
+
 	glfwSwapInterval(1);
 	glfwSetInputMode(window, GLFW_CURSOR,GLFW_CURSOR_NORMAL);
 	
@@ -171,7 +187,9 @@ int main(int, char**) {
 	glEnable(GL_DEPTH_TEST);
 	glViewport(0, 0,scr_width, scr_height);
 	glEnable(GL_PROGRAM_POINT_SIZE);
-	
+	glEnable(GL_MULTISAMPLE);
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	//io callbacks
 	glfwSetKeyCallback(window, Keyboard::keyCallback);
 	glfwSetCursorPosCallback(window, Mouse::cursorPosCallback);
@@ -243,19 +261,69 @@ int main(int, char**) {
 			
 		}
 		processInput(dt);
-		
-		
+		auto capture_logic = [&](const std::string& filename) {
+			if (uiPtr->capture_area_set) {
+				int x = std::min(uiPtr->capture_start_pos.x, uiPtr->capture_end_pos.x);
+				int y = std::min(uiPtr->capture_start_pos.y, uiPtr->capture_end_pos.y);
+				int width = std::abs(uiPtr->capture_start_pos.x - uiPtr->capture_end_pos.x);
+				int height = std::abs(uiPtr->capture_start_pos.y - uiPtr->capture_end_pos.y);
+				plotterPtr->saveFrame(filename, x, y, width, height);
+			}
+			else {
+				plotterPtr->saveFrame(filename);
+			}
+			};
+
+		if (start_capture_pending) {
+			capture_logic("C:/Users/85chr/source/repos/TryAgain/plots/simulation_start.png");
+
+			if (rcPtr) {
+				rcPtr->start_sim(100);
+			}
+			start_capture_pending = false; // Mark as complete
+		}
+		if (uiPtr->sim_running && !sim_init) {
+			const auto& normal_agents = uiPtr->getNormalAgents();
+			const auto& adversaries = uiPtr->getAdversaries();
+			rcPtr = std::make_shared<ResilientConsensus>(normal_agents, adversaries, pointsPtr);
+			sim_init = true;
+			//rcPtr->start_sim(100);
+			start_capture_pending = true;
+			std::cout << "sim started." << std::endl;
+			
+		}
+		/*if (rcPtr && !rcPtr->is_running && !end_capture_pending)
+		{
+			end_capture_pending = true;
+		}*/
+		if (rcPtr && rcPtr->is_running) {
+			rcPtr->sim_step();
+			if (!rcPtr->is_running) {
+				end_capture_pending = true;
+			}
+		}
+		//else if (sim_init) {
+		//	// If the simulation has finished, reset the flags
+		//	uiPtr->sim_running = false;
+		//	sim_init = false;
+		//	 // Clear the pointer
+		//}
 		//update time
 		uiPtr->NewFrame();
 		//window params
 		uiPtr->DrawWindow();
-		uiPtr->DrawAnotherWindow(1);
+		uiPtr->DrawInspectorWindow(2);
+		uiPtr->DrawInspectorWindow(1);
 		//render
-		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+		glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
+		if (end_capture_pending) {
+			// Use the plotter to render trajectories
+			plotterPtr->renderTrajectories(rcPtr->X_history, projection, view);
+		}
 		 
 		pointsPtr->render();
+		
 		polygonPtr->render();
 		//linePtr->render();
 		//halfspacePtr->render();
@@ -271,16 +339,21 @@ int main(int, char**) {
 		int display_w, display_h;
 		glfwGetFramebufferSize(window, &display_w, &display_h);
 		glViewport(0, 0, display_w, display_h);
-		//glClearColor(clear_color.x * clear_color.w, clear_color.y * clear_color.w, clear_color.z * clear_color.w, clear_color.w);
-		//glClear(GL_COLOR_BUFFER_BIT);
-		
+	
+		if (end_capture_pending) {
+			capture_logic("C:/Users/85chr/source/repos/TryAgain/plots/simulation_end.png");
+
+			// Reset all simulation state
+			uiPtr->resetCaptureArea();
+			end_capture_pending = false;
+			sim_init = false;
+			uiPtr->sim_running = false;
+			rcPtr = nullptr;
+		}
 		glfwPollEvents();
 		glfwSwapBuffers(window);
 	}
 	//cleanup programs
-	//rect.cleanup();
-	
-	
 
 	//glfwDestroyWindow(imgui_window);
 	spherePtr->cleanup();
@@ -301,6 +374,7 @@ void initGLFW(unsigned int versionMajor, unsigned int versionMinor) {
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, versionMajor);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, versionMinor);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+	glfwWindowHint(GLFW_SAMPLES, 4);
 
 }
 void createWindow(GLFWwindow*& window, const char* title, unsigned int width, unsigned int height, GLFWframebuffersizefun framebufferSizeCallback) {
@@ -316,6 +390,9 @@ void framebufferSizeCallback(GLFWwindow* window, int width, int height) {
 	glViewport(0, 0, width, height);
 	scr_width = width;
 	scr_height = height;
+	if (plotterPtr) {
+		plotterPtr->updateScreenSize(width, height);
+	}
 	updateCameraMatrices();
 }
 
