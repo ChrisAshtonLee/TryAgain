@@ -90,8 +90,8 @@ struct DualLines {
 	int type;
 };
 struct ProjectionResult {
-    std::vector<Point> adjusted_points;
-    Point intersection_point;
+    std::vector<glm::vec2> adjusted_points;
+    glm::vec2 intersection_point;
 };
 
 struct DashVertex {

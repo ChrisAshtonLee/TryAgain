@@ -23,6 +23,7 @@ public:
     ProjectionResult Xp;
     std::vector<std::vector<int>> Nh;
     std::vector<std::vector<glm::vec2> > X_history;
+   
     int attack_mode = 1;
     bool is_running = false;
     int current_step = 0;
@@ -53,19 +54,20 @@ public:
         std::default_random_engine rng(rd());
         // Initialize neighborhoods
         Nh.resize(n+f);
-
+    
         for (int i : normal_agents) {
           
             std::vector<int> normal_agent_ind(normal_agents);
          
             std::shuffle(normal_agent_ind.begin(), normal_agent_ind.end(), rng);
 
-            Nh[normal_agents[i]].assign(normal_agent_ind.begin(), normal_agent_ind.begin() + std::min((int)normal_agent_ind.size(), 5));
+            Nh[normal_agents[i]].assign(normal_agent_ind.begin(), normal_agent_ind.begin() + std::min((int)normal_agent_ind.size(), 6));
             
             for (int attacker : attackers) {
                 Nh[normal_agents[i]].push_back(attacker);
             }
         }
+       
     }
 
     void sim_step() {
@@ -79,9 +81,14 @@ public:
 
         // --- This is the body of your old for-loop ---
         for (int i : normal_agents) { // Loop over ALL agents (n+f)
-          
-          
-            targets[i] = get_centerpoint(i);
+            std::vector<glm::vec2> Xn;
+            for (int j : Nh[normal_agents[i]])
+            {
+                Xn.push_back(X[j]);
+            }
+            Xp = TV_Projection(Xn);
+           // targets[i] = get_centerpoint(i);
+            targets[i] = get_contour(i, Xp.adjusted_points);
           
         }
         for (int a_idx : attackers) {
@@ -141,6 +148,28 @@ private:
             return glm::vec2(center.x, center.y);
         }
        if (!suppress) std::cout << "Agent " << agent_index << " did not move." << std::endl;
+        return X[agent_index]; // Fallback
+    }
+
+    glm::vec2 get_contour(int agent_index, std::vector<glm::vec2> Xa) {
+        std::vector<Vertex> neighbor_positions;
+        for (glm::vec2 pos : Xa) {
+           // if (!suppress) std::cout << " Neighbor index: " << Nh[agent_index][neighbor_idx] << std::endl;
+            neighbor_positions.push_back({ glm::vec3(pos.x, pos.y, 0.0f), glm::vec3(0.0f) });
+            //if (!suppress) std::cout << "Position: " << X[neighbor_idx].x << X[neighbor_idx].y << std::endl;
+        }
+
+        TukeyContour TC(neighbor_positions, 1, false);
+        if (!TC.median_contour.empty()) {
+            glm::vec3 center(0.0f);
+            for (const auto& v : TC.median_contour) {
+                center += v.position;
+            }
+            center /= (float)TC.median_contour.size();
+            if (!suppress) std::cout << "Agent " << agent_index << " has target " << center.x << " " << center.y << std::endl;
+            return glm::vec2(center.x, center.y);
+        }
+        if (!suppress) std::cout << "Agent " << agent_index << " did not move." << std::endl;
         return X[agent_index]; // Fallback
     }
 

@@ -20,6 +20,6 @@ double dot(const Point& a, const Point& b);
 double norm(const Point& a);
 double cross_product(Point p1, Point p2, Point p3);
 
-std::optional<Point> _find_intersection(const Point& p1, const Point& p2, const Point& p3, const Point& p4);
+std::optional<glm::vec2> _find_intersection(const glm::vec2& p1, const glm::vec2& p2, const glm::vec2& p3, const glm::vec2& p4);
 
 std::vector<Point> Conv2D(std::vector<Point>& points);

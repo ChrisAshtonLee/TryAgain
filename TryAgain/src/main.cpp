@@ -290,6 +290,7 @@ int main(int, char**) {
 		if (uiPtr->sim_running && !sim_init) {
 			const auto& normal_agents = uiPtr->getNormalAgents();
 			const auto& adversaries = uiPtr->getAdversaries();
+			plotterPtr->normal_agent_size = normal_agents.size();
 			rcPtr = std::make_shared<ResilientConsensus>(normal_agents, adversaries, pointsPtr);
 			sim_init = true;
 			//rcPtr->start_sim(100);

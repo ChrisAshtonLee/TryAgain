@@ -111,7 +111,7 @@ void Plotter::renderTrajectories(
         glm::vec3 agent_color(0.0f, 0.0f, 1.0f); // Default color
         glm::vec3 final_pos = glm::vec3(-1.8f, history.back()[agent_idx].y, history.back()[agent_idx].x);
         glm::vec3 init_pos = glm::vec3(-1.8f, history[0][agent_idx].y, history[0][agent_idx].x);
-        if (agent_idx < 5) {
+        if (agent_idx < normal_agent_size) {
             normal_points_2d.push_back(Point{ history[0][agent_idx].x, history[0][agent_idx].y });
         }
         m_points->addInstance(init_pos.x, init_pos.y, init_pos.z, agent_color);

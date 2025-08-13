@@ -11,7 +11,7 @@ double norm(const Point& a) { return std::sqrt(a.x * a.x + a.y * a.y); }
 double cross_product(Point p1, Point p2, Point p3) {
     return (p2.x - p1.x) * (p3.y - p1.y) - (p2.y - p1.y) * (p3.x - p1.x);
 }
-std::optional<Point> _find_intersection(const Point& p1, const Point& p2, const Point& p3, const Point& p4) {
+std::optional<glm::vec2> _find_intersection(const glm::vec2& p1, const glm::vec2& p2, const glm::vec2& p3, const glm::vec2& p4) {
     
      // Line 1 (p1, p2): A1x + B1y = C1
      double a1 = p2.y - p1.y;
@@ -30,7 +30,7 @@ std::optional<Point> _find_intersection(const Point& p1, const Point& p2, const 
          return std::nullopt; // Lines are parallel
      }
 
-     Point intersection;
+     glm::vec2 intersection;
      intersection.x = (b2 * c1 - b1 * c2) / determinant;
      intersection.y = (a1 * c2 - a2 * c1) / determinant;
 

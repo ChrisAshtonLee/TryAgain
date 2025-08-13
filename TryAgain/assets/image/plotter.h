@@ -32,6 +32,7 @@ public:
     std::shared_ptr<Points> m_points;
     std::shared_ptr<Line> m_line;
     std::vector<int>addedIdxs;
+    int normal_agent_size=0;
 private:
     int screen_width;
     int screen_height;
