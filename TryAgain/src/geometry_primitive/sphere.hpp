@@ -7,7 +7,7 @@
 #include <vector>
 #include <unordered_map>
 
-#include "program.h"
+#include "geometry_primitive.h"
 #include "../rendering/shader.h"
 #include "../rendering/material.h"
 #include "../rendering/vertexmemory.hpp"
@@ -22,7 +22,7 @@ typedef struct {
 	glm::vec2 texCoord;
 } SphereVertex;
 
-class Sphere : public Program {
+class Sphere : public geometry_primitive {
 	std::vector<SphereVertex> vertices;
 	std::vector<unsigned int> indices;
 

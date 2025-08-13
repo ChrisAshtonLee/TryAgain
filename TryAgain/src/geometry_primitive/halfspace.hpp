@@ -1,7 +1,7 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
-#include "program.h"
+#include "geometry_primitive.h"
 #include "../rendering/shader.h"
 #include "../rendering/material.h"
 #include "../rendering/vertexmemory.hpp"
@@ -14,7 +14,7 @@
 #define HALFSPACE_HPP
 
 
-class Halfspace : public Program {
+class Halfspace : public GeometryPrimitive {
 
 
 	

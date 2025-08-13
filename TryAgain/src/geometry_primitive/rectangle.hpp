@@ -1,14 +1,14 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
-#include "program.h"
+#include <src/geometry_primitive/geometry_primitive.h>
 #include "../rendering/shader.h"
 #include "../rendering/vertexmemory.hpp"
 
 #ifndef RECTANGLE_HPP
 #define RECTANGLE_HPP
 
-class Rectangle : public Program {
+class Rectangle : public GeometryPrimitive {
 private:
 	ArrayObject VAO;
 	glm::vec3 vertices[6] = {

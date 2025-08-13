@@ -6,11 +6,12 @@
 #include <algorithm>
 #include <iostream>
 #include <glm/glm.hpp>
-#include <src/programs/points.hpp>
+#include <src/geometry_primitive/points.hpp>
 #include<src/TukeyContour.h>
 #include <common/data.h>
 #include <cstdlib>
 #include <ctime>
+#include<scripts/sym_projection.h>
 
 class ResilientConsensus {
 public:
@@ -19,6 +20,7 @@ public:
     std::vector<int> normal_agents;
     std::vector<int> attackers;
     std::vector<glm::vec2> X;
+    ProjectionResult Xp;
     std::vector<std::vector<int>> Nh;
     std::vector<std::vector<glm::vec2> > X_history;
     int attack_mode = 1;

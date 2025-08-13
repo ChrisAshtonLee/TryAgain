@@ -1,6 +1,6 @@
-#include "program.h"
+#include "geometry_primitive.h"
 
-void Program::updateCameraMatrices(glm::mat4 projView, glm::vec3 camPos) {
+void GeometryPrimitive::updateCameraMatrices(glm::mat4 projView, glm::vec3 camPos) {
 	shader.activate();
 	
 	shader.setMat4("projView", projView);
@@ -9,18 +9,18 @@ void Program::updateCameraMatrices(glm::mat4 projView, glm::vec3 camPos) {
 	//previewShader.set3Float("aPos", camPos);
 
 }
-void Program::load() {}
-void Program::render() {}
-void Program::cleanup() {}
+void GeometryPrimitive::load() {}
+void GeometryPrimitive::render() {}
+void GeometryPrimitive::cleanup() {}
 
-int Program::getInstanceCount() {
+int GeometryPrimitive::getInstanceCount() {
 	// Your implementation code here
 	// For example:
 	return 0;
 }
 
 // Definition for the getInstanceWorldCoords function
-glm::vec3 Program::getInstanceWorldCoords(int i) {
+glm::vec3 GeometryPrimitive::getInstanceWorldCoords(int i) {
 	// Your implementation code here
 	// For example:
 	return glm::vec3(0.0f);

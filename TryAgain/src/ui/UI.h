@@ -7,11 +7,11 @@
 #include <GLFW/glfw3.h>
 
 #include <common/data.h>
-#include <src/programs/halfspace.hpp>
-#include <src/programs/points.hpp>
-#include <src/programs/polygon.hpp>
-#include <src/programs/line.hpp>
-#include <src/programs/sphere.h>
+#include <src/geometry_primitive/halfspace.hpp>
+#include <src/geometry_primitive/points.hpp>
+#include <src/geometry_primitive/polygon.hpp>
+#include <src/geometry_primitive/line.hpp>
+#include <src/geometry_primitive/sphere.h>
 #include <memory>
 #include <vector>
 #include <src/rendering/shader.h>
@@ -38,8 +38,9 @@ public:
     void Render();
 
     // Example drawing methods
-    void DrawDemoWindow(bool* p_open);
+    void DrawDemoWindow();
     void DrawWindow();
+    void DrawExportWindow();
     void DrawInspectorWindow(int opt);
     void selectObjectsInBox(ImVec2 p0, ImVec2 p1);
     void UpdateCameraMatrices(glm::mat4 in_view, glm::mat4 in_proj, int in_scr_width, int in_scr_height);
@@ -47,6 +48,12 @@ public:
     void drawSelectionBox();
     void highlightHoverSelect(ImVec2 p0);
     void SnapToPosition(glm::vec3& previewPos);
+    void resetCaptureArea() {
+        capture_area_set = false;
+    }
+    void DrawPopups();
+    
+
     glm::vec2 UIworldToScreen( glm::vec3 worldPos,  glm::mat4 model,  glm::mat4 view,  glm::mat4 projection, int screenWidth, int screenHeight);
     glm::vec3 UIscreenToWorld(glm::vec2 screenPos, float z, glm::mat4 model,  glm::mat4 view,  glm::mat4 projection, int screenWidth, int screenHeight);
 	glm::vec3 getPreviewPos();
@@ -67,11 +74,10 @@ public:
     bool shaderLoaded = false;
     bool set_capture_area_mode = false;
     bool capture_area_set = false;
+    char save_path[256] = "C:/Users/85chr/source/repos/TryAgain/plots/Sim.csv";
     ImVec2 capture_start_pos;
     ImVec2 capture_end_pos;
-    void resetCaptureArea() {
-        capture_area_set = false;
-    }
+    
     std::set<int> selectedSpheres;
     glm::mat4 view;
     glm::mat4 proj;
@@ -93,6 +99,7 @@ public:
     std::vector<int> adversaries;
     bool sim_running = false;
 private:
+    void saveSimulationData(const std::string& filepath, const std::vector<std::vector<glm::vec2>>& history);
     GLuint axesVAO, axesVBO;
     Shader previewShader;
     int k_input = 0;

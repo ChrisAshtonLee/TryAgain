@@ -11,14 +11,15 @@
 #include <sstream>
 #include <streambuf>
 #include <string>
+#include <common/data.h>
 #include "rendering/shader.h"
 #include "rendering/uniformmemory.hpp"
-#include "programs/halfspace.hpp"
-#include "programs/rectangle.hpp"
-#include "programs/sphere.h"
-#include "programs/points.hpp"
-#include "programs/line.hpp"
-#include "programs/polygon.hpp"
+#include "geometry_primitive/halfspace.hpp"
+#include "geometry_primitive/rectangle.hpp"
+#include "geometry_primitive/sphere.h"
+#include "geometry_primitive/points.hpp"
+#include "geometry_primitive/line.hpp"
+#include "geometry_primitive/polygon.hpp"
 #include <assets/image/plotter.h>
 #include "io/camera.h"
 #include "io/keyboard.h"
@@ -32,7 +33,7 @@
 #include <random>
 #include <src/UI/UI.h>
 #include <memory>
-#include <common/data.h>
+
 #include <iostream>
 #include <scripts/ResilientConsensus.hpp>
 
@@ -84,8 +85,8 @@ GLFWwindow* window = nullptr;
 glm::mat4 view;
 glm::mat4 projection;
 
-//Programs
-std::vector<std::shared_ptr<Program>> programs;
+//geometry_primitives
+std::vector<std::shared_ptr<GeometryPrimitive>> geometry_primitives;
 std::vector<Halfspace*> spaces;
 //Rectangle rect;
 //Sphere sphere(1);
@@ -143,7 +144,7 @@ int main(int, char**) {
 	if (window == nullptr)
 		return 9;
 	
-	//init programs
+	//init geometry_primitives
 	pointsPtr = std::make_shared<Points>();
 	halfspacePtr = std::make_shared<Halfspace>();
 	polygonPtr = std::make_shared<Polygon>();
@@ -157,10 +158,10 @@ int main(int, char**) {
 	desc.halfspace = halfspacePtr;
 	desc.sphere = spherePtr;
 	desc.rc = rcPtr;
-	programs.push_back(pointsPtr);
-	programs.push_back(polygonPtr);
-	programs.push_back(linePtr);
-	programs.push_back(spherePtr);
+	geometry_primitives.push_back(pointsPtr);
+	geometry_primitives.push_back(polygonPtr);
+	geometry_primitives.push_back(linePtr);
+	geometry_primitives.push_back(spherePtr);
 
 	glfwSwapInterval(1); // Enable vsync
 
@@ -221,9 +222,9 @@ int main(int, char**) {
 		})
 	});
 	dirLightUBO.attachToShader(spherePtr->shader, "DirLightUniform");
-	//for (Program* program : programs)
+	//for (geometry_primitive* geometry_primitive : geometry_primitives)
 	//{
-		//dirLightUBO.attachToShader(program->shader, "DirLightUniform");
+		//dirLightUBO.attachToShader(geometry_primitive->shader, "DirLightUniform");
 	//}
 	
 	dirLightUBO.generate();
@@ -318,6 +319,8 @@ int main(int, char**) {
 		uiPtr->DrawWindow();
 		uiPtr->DrawInspectorWindow(2);
 		uiPtr->DrawInspectorWindow(1);
+		uiPtr->DrawPopups();
+		
 		//render
 		glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -325,7 +328,7 @@ int main(int, char**) {
 			// Use the plotter to render trajectories
 			plotterPtr->renderTrajectories(rcPtr->X_history, projection, view);
 		}
-		for (auto& p : programs)
+		for (auto& p : geometry_primitives)
 		{
 			if (p->noInstances > 0)
 			{
@@ -363,7 +366,7 @@ int main(int, char**) {
 		glfwPollEvents();
 		glfwSwapBuffers(window);
 	}
-	//cleanup programs
+	//cleanup geometry_primitives
 
 	//glfwDestroyWindow(imgui_window);
 	spherePtr->cleanup();
@@ -457,7 +460,11 @@ void keyChanged(GLFWwindow* window, int key, int scancode, int action, int mods)
 	}
 }
 void cursorChanged(GLFWwindow* window, double _x, double _y) {
+	
 	ImGui_ImplGlfw_CursorPosCallback(window, _x, _y);
+	if (ImGui::GetIO().WantCaptureMouse) {
+		return;
+	}
 	double dx = Mouse::getDX();
 	double dy = Mouse::getDY();
 	
@@ -469,7 +476,11 @@ void cursorChanged(GLFWwindow* window, double _x, double _y) {
 	
 }
 void mouseButtonChanged(GLFWwindow* window, int button, int action, int mods) {
+	
 	ImGui_ImplGlfw_MouseButtonCallback(window, button, action, mods);
+	if (ImGui::GetIO().WantCaptureMouse) {
+		return;
+	}
 	mouse_x = Mouse::getMouseX();
 	mouse_y = Mouse::getMouseY();
 	

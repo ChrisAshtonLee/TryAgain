@@ -3,7 +3,7 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
-#include <src/programs/program.h>
+#include <src/geometry_primitive/geometry_primitive.h>
 #include "../rendering/shader.h"
 #include "../rendering/vertexmemory.hpp"
 #include <vector>
@@ -13,7 +13,7 @@
 #ifndef POLYGON_HPP
 #define POLYGON_HPP
 
-class Polygon : public Program {
+class Polygon : public GeometryPrimitive {
     
    // std::vector<glm::vec3> colors;
     ArrayObject VAO;

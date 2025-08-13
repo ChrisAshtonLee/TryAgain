@@ -1,7 +1,7 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
-#include "program.h"
+#include "geometry_primitive.h"
 #include "../rendering/shader.h"
 #include "../rendering/vertexmemory.hpp"
 #include <common/data.h>
@@ -14,7 +14,7 @@
 // A simple vertex struct for lines
 
 
-class Line : public Program {
+class Line : public GeometryPrimitive {
 private:
     
     ArrayObject VAO;

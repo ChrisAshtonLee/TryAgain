@@ -3,7 +3,7 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
-#include "program.h"
+#include "geometry_primitive.h"
 #include "../rendering/shader.h"
 #include "../rendering/vertexmemory.hpp"
 
@@ -12,7 +12,7 @@
 #ifndef POINTS_HPP
 #define POINTS_HPP
 
-class Points : public Program {
+class Points : public GeometryPrimitive {
     
     //std::vector<glm::vec3> points;
     std::vector<glm::vec3> colors;

@@ -1,4 +1,4 @@
-#include <src/programs/sphere.h>
+#include <src/geometry_primitive/sphere.h>
 #include <glad/glad.h>
 #include <glm/glm.hpp>
 #include <iostream>

@@ -12,9 +12,10 @@
 #include <src/imgui_impl_opengl3.h>
 #include <imgui/imgui.h>
 #include <src/rendering/material.h>
-#include <src/programs/sphere.h>
+#include <src/geometry_primitive/sphere.h>
 #include<src/TukeyContour.h>
 #include<math.h>
+#include<fstream>
 #include <algorithm>
 
 //ImGuiIO& io = ImGui::GetIO();
@@ -66,8 +67,9 @@ void UI::Render()
 	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 }
 
-void UI::DrawDemoWindow(bool* p_open)
+void UI::DrawDemoWindow()
 {
+	ImGui::ShowDemoWindow();
 }
 
 void UI::DrawWindow()
@@ -482,8 +484,21 @@ void UI::DrawInspectorWindow(int opt)
 	}
 	if (opt == 2)
 	{
-		ImGui::SetNextWindowPos(ImVec2(100, 50), ImGuiCond_FirstUseEver);
-		ImGui::Begin("Simulation Setup");
+		//ImGui::SetNextWindowPos(ImVec2(100, 50), ImGuiCond_FirstUseEver);
+		ImGui::Begin("Simulation Setup", nullptr, ImGuiWindowFlags_MenuBar);
+		if (ImGui::BeginMenuBar()) {
+			if (ImGui::BeginMenu("File")) {
+				// This is the menu item that will trigger the save dialog
+				if (ImGui::MenuItem("Save Simulation Data (.csv)...")) {
+					ImGui::OpenPopup("Save Data Popup");
+				}
+				ImGui::EndMenu();
+			}
+			ImGui::EndMenuBar();
+		}
+		
+		
+		
 		Selection& sel = currentSelections[0];
 		if (ImGui::Button("Select Normal Agents")) {
 			ImGui::Text("Selected Instances: %d", sel.selectedIndices.size());
@@ -528,7 +543,8 @@ void UI::DrawInspectorWindow(int opt)
 		if (select_mode || set_capture_area_mode) {
 			drawSelectionBox();
 		}
-	
+		// --- 2. Define the Popup Modal Window ---
+		
 		ImGui::End();
 		data_pointer = ImGui::GetDrawData();
 	}
@@ -546,6 +562,39 @@ void UI::DrawInspectorWindow(int opt)
 //	return previewPos;
 //	
 //}
+void UI::DrawPopups()
+{
+	// Set the position for the popup just before we attempt to open it.
+	ImVec2 center = ImGui::GetMainViewport()->GetCenter();
+	ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+
+	// Now, define the popup.
+	if (ImGui::BeginPopupModal("Save Data Popup", NULL, ImGuiWindowFlags_AlwaysAutoResize)) {
+		// This will now print correctly.
+		std::cout << "popup should appear" << std::endl;
+
+		ImGui::Text("Enter the full path to save the simulation data:");
+		ImGui::InputText("##savepath", save_path, IM_ARRAYSIZE(save_path));
+		ImGui::Separator();
+
+		if (ImGui::Button("Save", ImVec2(120, 0))) {
+			if (m_rc && !m_rc->X_history.empty()) {
+				saveSimulationData(save_path, m_rc->X_history);
+			}
+			else {
+				std::cerr << "No simulation data available to save." << std::endl;
+			}
+			ImGui::CloseCurrentPopup();
+		}
+		ImGui::SameLine();
+		if (ImGui::Button("Cancel", ImVec2(120, 0))) {
+			ImGui::CloseCurrentPopup();
+		}
+		ImGui::EndPopup();
+	}
+}
+
+
 
 glm::vec3 UI::getPreviewPos()
 {
@@ -977,7 +1026,39 @@ void UI::UpdateCameraMatrices(glm::mat4 in_view, glm::mat4 in_proj, int in_scr_w
 	scr_width = in_scr_width;
 	scr_height = in_scr_height;
 }
+void UI::saveSimulationData(const std::string& filepath, const std::vector<std::vector<glm::vec2>>& history) {
+	if (history.empty()) {
+		std::cerr << "Simulation history is empty. Nothing to save." << std::endl;
+		return;
+	}
 
+	// Open the file for writing
+	std::ofstream csv_file(filepath);
+	if (!csv_file.is_open()) {
+		std::cerr << "Failed to open file for writing: " << filepath << std::endl;
+		return;
+	}
+
+	// --- Write the CSV Header ---
+	csv_file << "step";
+	int num_agents = history[0].size();
+	for (int i = 0; i < num_agents; ++i) {
+		csv_file << ",agent_" << i << "_x,agent_" << i << "_y";
+	}
+	csv_file << "\n";
+
+	for (size_t step = 0; step < history.size(); ++step) {
+		csv_file << step; // First column is the step number
+		for (int agent_idx = 0; agent_idx < num_agents; ++agent_idx) {
+			// Add the x and y coordinates for each agent
+			csv_file << "," << history[step][agent_idx].x << "," << history[step][agent_idx].y;
+		}
+		csv_file << "\n";
+	}
+
+	csv_file.close();
+	std::cout << "Successfully saved simulation data to " << filepath << std::endl;
+}
 
 
 bool UI::sort_descend(int a, int b) {

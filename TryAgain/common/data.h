@@ -2,7 +2,7 @@
 #include <vector>
 #include <memory>
 #include <iostream>
-//#include <src/programs/points.hpp>
+//#include <src/geometry_primitives/points.hpp>
 
 
 
@@ -12,12 +12,12 @@ class Line;
 class Halfspace;
 class Rectangle;
 class Polygon;
-class Program;
+class GeometryPrimitive;
 class ResilientConsensus;
 
 struct Selection
 {
-	std::shared_ptr<Program> m_geometryType;
+	std::shared_ptr<GeometryPrimitive> m_geometryType;
 	std::vector<int> selectedIndices;
 };
 
@@ -88,6 +88,10 @@ struct DualKLevel
 struct DualLines {
 	double m, c;
 	int type;
+};
+struct ProjectionResult {
+    std::vector<Point> adjusted_points;
+    Point intersection_point;
 };
 
 struct DashVertex {

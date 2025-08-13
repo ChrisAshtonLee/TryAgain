@@ -1,7 +1,7 @@
 #pragma once
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include <assets/image/plotter.h>
-#include <src/programs/line.hpp>
+#include <src/geometry_primitive/line.hpp>
 #include <glad/glad.h>
 #include <iostream>
 #include <common/data.h>

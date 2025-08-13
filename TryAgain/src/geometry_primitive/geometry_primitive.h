@@ -7,9 +7,9 @@
 
 #include <vector>
 
-#ifndef PROGRAM_H
-#define PROGRAM_H
-class Program {
+#ifndef GEOMETRY_PRIMITIVE
+#define GEOMETRY_PRIMITIVE
+class GeometryPrimitive {
 public:
 	Shader shader;
 	Shader previewShader;

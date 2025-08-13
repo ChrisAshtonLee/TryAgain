@@ -8,14 +8,14 @@
 #include <vector>
 #include <unordered_map>
 
-#include "program.h"
+#include <src/geometry_primitive/geometry_primitive.h>
 #include "../rendering/shader.h"
 #include "../rendering/material.h"
 #include "../rendering/vertexmemory.hpp"
 extern const char* vertexShaderSource;
 extern const char* fragmentShaderSource;
 
-class Sphere : public Program {
+class Sphere : public GeometryPrimitive {
 	std::vector<SphereVertex> vertices;
 	std::vector<unsigned int> indices;
 

@@ -1,14 +1,17 @@
 #pragma once
-
+#include <glm/glm.hpp>
+#include <common/data.h>
+#include <common/_math.h>
 #include <string>
 #include <vector>
 #include <memory>
-#include <glm/glm.hpp>
+
 #include <src/rendering/shader.h>
-#include<src/programs/points.hpp>
-#include <src/programs/line.hpp>
+#include<src/geometry_primitive/points.hpp>
+#include <src/geometry_primitive/line.hpp>
+
 // Forward-declare the Line class to avoid including its full header here
-class Line;
+
 
 class Plotter {
 public:

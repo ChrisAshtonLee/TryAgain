@@ -56,7 +56,7 @@ void Shader::activate() {
     glUseProgram(id);
     /*GLenum err = glGetError();
     if (err != GL_NO_ERROR) {
-        std::cerr << "OpenGL error after glUseProgram: " << err << std::endl;
+        std::cerr << "OpenGL error after glUsegeometry_primitive: " << err << std::endl;
 		std::cout << "Shader ID: " << id << std::endl;
     }*/
 }
@@ -127,7 +127,7 @@ void Shader::setVec4(const std::string& name, glm::vec4 val)
     static
 */
 
-// compile shader program
+// compile shader geometry_primitive
 GLuint Shader::compileShader(bool includeDefaultHeader, const char* filePath, GLuint type) {
     // create shader from file
     GLuint ret = glCreateShader(type);

@@ -254,6 +254,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="common\_math.cpp" />
     <ClCompile Include="imgui\backends\imgui_impl_glfw.cpp" />
     <ClCompile Include="imgui\backends\imgui_impl_opengl3.cpp" />
     <ClCompile Include="imgui\imgui.cpp" />
@@ -264,14 +265,15 @@
     <ClCompile Include="lib\glad.c" />
     <ClCompile Include="lib\stb.cpp" />
     <ClCompile Include="assets\image\plotter.cpp" />
+    <ClCompile Include="scripts\sym_projection.cpp" />
     <ClCompile Include="src\io\camera.cpp" />
     <ClCompile Include="src\io\joystick.cpp" />
     <ClCompile Include="src\io\keyboard.cpp" />
     <ClCompile Include="src\io\mouse.cpp" />
     <ClCompile Include="src\main.cpp" />
-    <ClCompile Include="src\programs\halfspace.hpp" />
-    <ClCompile Include="src\programs\program.cpp" />
-    <ClCompile Include="src\programs\sphere.cpp" />
+    <ClCompile Include="src\geometry_primitive\halfspace.hpp" />
+    <ClCompile Include="src\geometry_primitive\geometry_primitive.cpp" />
+    <ClCompile Include="src\geometry_primitive\sphere.cpp" />
     <ClCompile Include="src\rendering\material.cpp" />
     <ClCompile Include="src\rendering\shader.cpp" />
     <ClCompile Include="src\TukeyContour.cpp" />
@@ -345,6 +347,7 @@
     <ClInclude Include="imgui\imstb_truetype.h" />
     <ClInclude Include="assets\image\plotter.h" />
     <ClInclude Include="scripts\ResilientConsensus.hpp" />
+    <ClInclude Include="scripts\sym_projection.h" />
     <ClInclude Include="src\ConvexHull.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='mathapp|x64'">false</ExcludedFromBuild>
@@ -357,12 +360,12 @@
     <ClInclude Include="src\io\joystick.h" />
     <ClInclude Include="src\io\keyboard.h" />
     <ClInclude Include="src\io\mouse.h" />
-    <ClInclude Include="src\programs\line.hpp" />
-    <ClInclude Include="src\programs\points.hpp" />
-    <ClInclude Include="src\programs\polygon.hpp" />
-    <ClInclude Include="src\programs\program.h" />
-    <ClInclude Include="src\programs\rectangle.hpp" />
-    <ClInclude Include="src\programs\sphere.h" />
+    <ClInclude Include="src\geometry_primitive\line.hpp" />
+    <ClInclude Include="src\geometry_primitive\points.hpp" />
+    <ClInclude Include="src\geometry_primitive\polygon.hpp" />
+    <ClInclude Include="src\geometry_primitive\geometry_primitive.h" />
+    <ClInclude Include="src\geometry_primitive\rectangle.hpp" />
+    <ClInclude Include="src\geometry_primitive\sphere.h" />
     <ClInclude Include="src\rendering\material.h" />
     <ClInclude Include="src\rendering\shader.h" />
     <ClInclude Include="src\rendering\uniformmemory.hpp" />
