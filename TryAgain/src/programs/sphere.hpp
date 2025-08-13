@@ -26,7 +26,7 @@ class Sphere : public Program {
 	std::vector<SphereVertex> vertices;
 	std::vector<unsigned int> indices;
 
-	unsigned int noInstances;
+	//unsigned int noInstances;
 	unsigned int maxNoInstances;
 	std::vector<glm::vec3> offsets;
 	std::vector<glm::vec3> sizes;

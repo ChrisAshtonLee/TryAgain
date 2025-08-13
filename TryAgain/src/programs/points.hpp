@@ -25,12 +25,13 @@ class Points : public Program {
   
 public:
     std::vector<glm::vec3> original_colors;
-    int noInstances = 0;
+   // int noInstances = 0;
+   // int noInstances = 0;
     std::vector<Vertex> points;
     
     Points(): shader(false, "points.vert", "plotpoints.frag")
     {
-       
+        noInstances = 0;
         std::vector<glm::vec3> sizes;
        // shader = Shader(false, "points.vert", "points.frag");
         VAO.generate(); // Generate VAO ID
@@ -56,7 +57,7 @@ public:
 
        
         // Unbind VAO to prevent accidental modification
-        VAO.bind(); // Rebind VAO after setup for clarity, then unbind
+      //  VAO.bind(); // Rebind VAO after setup for clarity, then unbind
        // glBindVertexArray(0); // Unbind VAO
       //  glBindBuffer(GL_ARRAY_BUFFER, 0); // Unbind VBO
         
@@ -103,8 +104,8 @@ public:
        // VAO["VBO"].setAttPointer<Vertex>(1, 3, GL_FLOAT, sizeof(Vertex), sizeof(glm::vec3));
 
         VAO["VBO"].setData<Vertex>((GLuint)noInstances, &points[0], GL_DYNAMIC_DRAW);
-        //VAO["VBO"].setAttPointer<Vertex>(0, 3, GL_FLOAT, sizeof(Vertex), 0);
-        //VAO["VBO"].setAttPointer<Vertex>(1, 3, GL_FLOAT, sizeof(Vertex), sizeof(glm::vec3));
+       /* VAO["VBO"].setAttPointer<Vertex>(0, 3, GL_FLOAT, sizeof(Vertex), 0);
+        VAO["VBO"].setAttPointer<Vertex>(1, 3, GL_FLOAT, sizeof(Vertex), 3);*/
        
 
 
@@ -117,14 +118,19 @@ public:
         colors.clear();
     }
     void render() {
+        if (noInstances == 0)
+        {
+            return;
+        }
         shader.activate();
         VAO.bind();
         GLenum err2;
 		VAO.draw(GL_POINTS, 0, noInstances);
-       
+      
         //glDrawArrays(GL_POINTS, 0, noInstances);
-        while ((err2 = glGetError()) != GL_NO_ERROR) { std::cerr << "OpenGL Error drawing: " << err2 << std::endl; }
+        while ((err2 = glGetError()) != GL_NO_ERROR) { std::cerr << "OpenGL Error drawing points: " << err2 << std::endl; }
         // glDrawArrays(GL_POINTS, 0, noInstances);
+      
 
     }
   

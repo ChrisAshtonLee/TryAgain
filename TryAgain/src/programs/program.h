@@ -14,9 +14,9 @@ public:
 	Shader shader;
 	Shader previewShader;
 	void updateCameraMatrices(glm::mat4 projView, glm::vec3 camPos);
-
+	int noInstances =0;
 	virtual void load();
-	virtual void render(double dt);
+	virtual void render();
 	virtual void cleanup();
 	virtual void highlight_selected(std::vector<int> selected) {};
 	virtual void unhighlight_selected(std::vector<int> selected) {};

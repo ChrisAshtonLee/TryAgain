@@ -5,14 +5,15 @@
 #include <glad/glad.h>
 #include <iostream>
 #include <common/data.h>
+#include <common/_math.h>
 
 // Define the STB implementation in only one .cpp file
 
 #include "stb_image_write.h"
 
 
-Plotter::Plotter(std::shared_ptr<Points> in_points, int initial_width, int initial_height)
-    : m_points(in_points), screen_width(initial_width), screen_height(initial_height), dash_shader(false,"dashed_line.vert", "dashed_line.frag") {
+Plotter::Plotter(std::shared_ptr<Points> in_points,std::shared_ptr<Line> in_line, int initial_width, int initial_height)
+    : m_points(in_points),m_line(in_line), screen_width(initial_width), screen_height(initial_height), dash_shader(false,"dashed_line.vert", "dashed_line.frag") {
 
     glGenVertexArrays(1, &vao);
     glGenBuffers(1, &vbo);
@@ -88,6 +89,7 @@ void Plotter::saveFrame(const std::string& filename, int x, int y, int width, in
         m_points->deleteInstance(i - k);
         k++;
     }
+    //m_line->clear();
 }
 
 void Plotter::renderTrajectories(
@@ -97,7 +99,7 @@ void Plotter::renderTrajectories(
 {
     if (history.empty()) return;
     int idx = m_points->getInstanceCount();
-    
+    std::vector<Point> normal_points_2d;
     std::vector<DashVertex> vertices;
     int num_agents = history[0].size();
     int num_steps = history.size();
@@ -109,9 +111,11 @@ void Plotter::renderTrajectories(
         glm::vec3 agent_color(0.0f, 0.0f, 1.0f); // Default color
         glm::vec3 final_pos = glm::vec3(-1.8f, history.back()[agent_idx].y, history.back()[agent_idx].x);
         glm::vec3 init_pos = glm::vec3(-1.8f, history[0][agent_idx].y, history[0][agent_idx].x);
-       
+        if (agent_idx < 5) {
+            normal_points_2d.push_back(Point{ history[0][agent_idx].x, history[0][agent_idx].y });
+        }
         m_points->addInstance(init_pos.x, init_pos.y, init_pos.z, agent_color);
-    
+        
         addedIdxs.push_back(idx + agent_idx);
         float x_marker_size = .0025f;
         std::vector<DashVertex> x_vertices;
@@ -146,6 +150,24 @@ void Plotter::renderTrajectories(
             avg_distance += cum_distance;
             vertices.push_back({ p2, agent_color, cum_distance });
         }
+    }
+    std::vector<Point> hull = Conv2D(normal_points_2d);
+    if (hull.size() > 1) {
+        glm::vec3 hull_color(0.1f, 0.8f, 0.2f); // A nice green color for the hull
+        for (size_t i = 0; i < hull.size(); ++i) {
+            // Get current and next point in the hull to form a line segment
+            Point p1_2d = hull[i];
+            Point p2_2d = hull[(i + 1) % hull.size()]; // Wrap around for the last segment
+
+            // Convert 2D hull points back to 3D world coordinates
+            glm::vec3 p1_3d = glm::vec3(-1.8f, p1_2d.y, p1_2d.x);
+            glm::vec3 p2_3d = glm::vec3(-1.8f, p2_2d.y, p2_2d.x);
+
+            m_line->addInstance(p1_3d, p2_3d, hull_color);
+        }
+        // Render all hull lines in one call
+       // m_line->load();
+        m_line->updateInstances();
     }
     m_points->load();
     avg_distance /= (float)num_agents;

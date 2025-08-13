@@ -90,10 +90,10 @@ std::vector<Halfspace*> spaces;
 //Rectangle rect;
 //Sphere sphere(1);
 
-Line line;
+
 glm::vec3 color1 = { 1.0,0.0,0.0 };
 glm::vec3 color2 = { 0.0,1.0,0.0 };
-Halfspace halfspace;
+//Halfspace halfspace;
 //Points points;
 //Polygon polygon;
 std::shared_ptr<Camera> camPtr;
@@ -150,14 +150,18 @@ int main(int, char**) {
 	linePtr = std::make_shared<Line>();
 	
 	spherePtr = std::make_shared<Sphere>(10);
-	plotterPtr = std::make_shared<Plotter>(pointsPtr,scr_width, scr_height);
+	plotterPtr = std::make_shared<Plotter>(pointsPtr,linePtr,scr_width, scr_height);
 	desc.points = pointsPtr;
 	desc.line = linePtr;
 	desc.polygon = polygonPtr;
 	desc.halfspace = halfspacePtr;
 	desc.sphere = spherePtr;
 	desc.rc = rcPtr;
-	
+	programs.push_back(pointsPtr);
+	programs.push_back(polygonPtr);
+	programs.push_back(linePtr);
+	programs.push_back(spherePtr);
+
 	glfwSwapInterval(1); // Enable vsync
 
 	const char* glsl_version = "#version 130";
@@ -321,13 +325,19 @@ int main(int, char**) {
 			// Use the plotter to render trajectories
 			plotterPtr->renderTrajectories(rcPtr->X_history, projection, view);
 		}
-		 
-		pointsPtr->render();
-		
-		polygonPtr->render();
+		for (auto& p : programs)
+		{
+			if (p->noInstances > 0)
+			{
+				p->render();
+			}
+		 }
+		//pointsPtr->render();
+		//
+		//polygonPtr->render();
 		//linePtr->render();
-		//halfspacePtr->render();
-		spherePtr->render();
+		////halfspacePtr->render();
+		//spherePtr->render();
 		uiPtr->Render();
 		if (uiPtr->previewMode && uiPtr->previewInstance)
 		{
@@ -434,7 +444,7 @@ void updateCameraMatrices() {
 	pointsPtr->updateCameraMatrices(projection * view, camPtr->cameraPos);
 	polygonPtr->updateCameraMatrices(projection * view, camPtr->cameraPos);
 	spherePtr-> updateCameraMatrices(projection * view, camPtr->cameraPos);
-	
+	linePtr->updateCameraMatrices(projection * view, camPtr->cameraPos);
 	uiPtr->UpdateCameraMatrices(view, projection, scr_width, scr_height);
 	uiPtr->cameraData = camData;
 	//uiPtr->previewUp = camPtr->cameraUp;

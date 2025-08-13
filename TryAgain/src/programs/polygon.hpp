@@ -25,12 +25,13 @@ public:
     std::vector<Vertex> points;
 	std::vector<glm::vec3> normals; // Normals for each point, default to zero if not provided
     std::vector <glm::vec3> vertices;
-    int noInstances =0;
+    //int noInstances =0;
     std::vector <unsigned int> indices;
 	std::vector<glm::vec3> original_colors; // Store original colors for highlighting
     std::vector<int> indices_block_size;
     std::vector<bool> selected_indices;
     Polygon() :  shader(false, "polygon.vert", "polygon.frag") {
+        noInstances = 0;
         VAO.generate(); // Generate VAO ID
         VAO.bind();     // Bind VAO
         // Initialize VBO within the VAO

@@ -2,7 +2,7 @@
 
 in vec3 ourColor;
 out vec4 fragColor;
-
+uniform vec3 viewPos;
 
 void main()
 {

@@ -293,6 +293,9 @@
     <ClInclude Include="assets\image\plotter.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="common\_math.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Text Include="imgui\LICENSE.txt" />

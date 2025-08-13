@@ -304,6 +304,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="common\data.h" />
+    <ClInclude Include="common\_math.h" />
     <ClInclude Include="extern\pybind11\attr.h" />
     <ClInclude Include="extern\pybind11\buffer_info.h" />
     <ClInclude Include="extern\pybind11\cast.h" />

@@ -87,7 +87,10 @@ void Shader::set3Float(const std::string& name, float v1, float v2, float v3) {
 }
 
 void Shader::set3Float(const std::string& name, glm::vec3 v) {
-    glUniform3f(glGetUniformLocation(id, name.c_str()), v.x, v.y, v.z);
+    GLint location = glGetUniformLocation(id, name.c_str());
+    if (location != -1) {
+        glUniform3f(location, v.x, v.y, v.z);
+    }
 }
 
 void Shader::set4Float(const std::string& name, float v1, float v2, float v3, float v4) {
@@ -103,7 +106,13 @@ void Shader::setMat3(const std::string& name, glm::mat3 val) {
 }
 
 void Shader::setMat4(const std::string& name, glm::mat4 val) {
-    glUniformMatrix4fv(glGetUniformLocation(id, name.c_str()), 1, GL_FALSE, glm::value_ptr(val));
+    // First, get the uniform's location
+    GLint location = glGetUniformLocation(id, name.c_str());
+
+    // Only set the uniform if it was found (i.e., location is not -1)
+    if (location != -1) {
+        glUniformMatrix4fv(location, 1, GL_FALSE, glm::value_ptr(val));
+    }
 }
 
 void Shader::setVec4(const std::string& name, glm::vec4 val)

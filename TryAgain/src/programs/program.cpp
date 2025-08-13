@@ -10,7 +10,7 @@ void Program::updateCameraMatrices(glm::mat4 projView, glm::vec3 camPos) {
 
 }
 void Program::load() {}
-void Program::render(double dt) {}
+void Program::render() {}
 void Program::cleanup() {}
 
 int Program::getInstanceCount() {
