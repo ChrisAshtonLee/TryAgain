@@ -64,6 +64,7 @@ ProjectionResult TV_Projection(const std::vector<glm::vec2>& points) {
         central_point = glm::vec2(centroid3D.x, centroid3D.y);
     }
     else {
+        std::cout << "TCMedian contour was empty." << std::endl;
         // Fallback: If no median contour, use the average of all points
         glm::vec2 sum(0.0f);
         for (const auto& p : points) {

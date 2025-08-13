@@ -14,6 +14,7 @@
 #include <src/rendering/material.h>
 #include <src/geometry_primitive/sphere.h>
 #include<src/TukeyContour.h>
+#include<scripts/sym_projection.h>
 #include<math.h>
 #include<fstream>
 #include <algorithm>
@@ -334,7 +335,34 @@ void UI::DrawWindow()
 				{
 					ImGui::Text("MaxDepth %d: ", maxdepth);
 				}
-
+				if (ImGui::Button("Symmetric Projection")) {
+					std::vector<Vertex> selected_points;
+					if (selection && !currentSelections[GT.POINTS].selectedIndices.empty()) {
+						for (int idx : currentSelections[GT.POINTS].selectedIndices) {
+							selected_points.push_back(m_points->points[idx]);
+						}
+					}
+					else {
+						selected_points = m_points->points;
+					}
+					std::vector<glm::vec2> screen_space_points;
+					for (const auto& pt : selected_points) {
+						screen_space_points.push_back(glm::vec2(pt.position.z,pt.position.y));
+						
+						// The z-value here is irrelevant for the 2D algorithm
+						//screen_space_points.push_back(Vertex{ glm::vec3(screenPos.x, screenPos.y, 0.0f), pt.color });
+					}
+					ProjectionResult P = TV_Projection(screen_space_points);
+					std::vector<Vertex> proj_verts;
+					
+					for (glm::vec2 p : P.adjusted_points)
+					{
+						m_points->addInstance(-1.8f, p.y, p.x, glm::vec3(0, 0.2f, 0.5f));
+						
+					}
+					m_points->load();
+					
+				}
 
 				if (ImGui::Button("Clear Points")) {
 					m_polygon->clear();
