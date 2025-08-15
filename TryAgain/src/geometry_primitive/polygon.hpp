@@ -22,6 +22,7 @@ class Polygon : public GeometryPrimitive {
    // std::vector <unsigned int> indices;
     glm::vec3 bc;
 public:
+    float alpha = 1.0f;
     std::vector<Vertex> points;
 	std::vector<glm::vec3> normals; // Normals for each point, default to zero if not provided
     std::vector <glm::vec3> vertices;
@@ -72,6 +73,7 @@ public:
              for (const auto& index : temp_indices) {
                  indices.push_back(index + index_offset);
 			 }
+             
         }
         else {
             std::vector<unsigned int> temp_indices = tessellate(vertices);
@@ -136,7 +138,9 @@ public:
 
     }
     void render() {
+        
         shader.activate();
+        shader.setFloat("alpha", alpha);
         VAO.bind();
         //VAO.draw(GL_TRIANGLES, (GLuint)indices.size(), GL_UNSIGNED_INT, 0, noInstances);
         //VAO.drawDistinctElements(GL_TRIANGLES, indices_block_size, GL_UNSIGNED_INT, 0, noInstances);

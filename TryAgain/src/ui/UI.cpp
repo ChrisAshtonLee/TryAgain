@@ -5,6 +5,7 @@
 #include <iostream>
 #include <sstream>
 #include <string>
+#include<math.h>
 #include <common/data.h>
 #include <random>
 #include <vector>
@@ -15,7 +16,7 @@
 #include <src/geometry_primitive/sphere.h>
 #include<src/TukeyContour.h>
 #include<scripts/sym_projection.h>
-#include<math.h>
+
 #include<fstream>
 #include <algorithm>
 
@@ -37,7 +38,7 @@ UI::UI(GLFWwindow* window, const char* glsl_version, UI_DESC desc)
 	hoverSelections.push_back(Selection{ m_sphere });
 	hoverSelections.push_back(Selection{ m_polygon });
 	//currentSelections.push_back(Selection{ m_polygon });
-	
+	m_qh = std::make_unique<Quickhull3D>();
 	
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
@@ -363,7 +364,46 @@ void UI::DrawWindow()
 					m_points->load();
 					
 				}
+				if (ImGui::Button("ConvexHull3D"))
+				{
+					std::vector<glm::vec3> normed = { glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec3(0.0f,1.0f, 0.0f), glm::vec3(1.0f, 0.0f, 0.0f) };
+					Selection& sel = currentSelections[0];
+					if (sel.selectedIndices.size() < 4) { std::cout << "Not enough points to compute convex hull. " << std::endl; }
+					else {
+						std::vector<glm::vec3> selectedPoints;
+						for (int i : sel.selectedIndices) { selectedPoints.push_back(m_points->points[i].position); }
+						std::vector<Triangle> hull = m_qh->computeHull(selectedPoints);
 
+						for (int j = 0; j < hull.size(); ++j) {
+							Vertex inst1 = { selectedPoints[hull[j].v1], glm::vec3(0.0f, 0.4f, 0.4f) };
+							Vertex inst2 = { selectedPoints[hull[j].v2], glm::vec3(0.0f, 0.4f, 0.4f) };
+							Vertex inst3 = { selectedPoints[hull[j].v3], glm::vec3(0.0f, 0.4f, 0.4f) };
+							m_polygon->addInstance(std::vector<Vertex>{inst1, inst2, inst3}, normed);
+						}
+						m_polygon->alpha = 0.5f;
+						m_polygon->updateInstances();
+
+					}
+				}
+				if (ImGui::Button("TukeyMedian3D")) {
+					std::vector<glm::vec3> normed = { glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec3(0.0f,1.0f, 0.0f), glm::vec3(1.0f, 0.0f, 0.0f) };
+					Selection& sel = currentSelections[0];
+					if (sel.selectedIndices.size() < 4) { std::cout << "Not enough points to compute Tukey Median. " << std::endl; }
+					else {
+						std::vector<Vertex> selectedPoints;
+						for (int i : sel.selectedIndices) { selectedPoints.push_back(m_points->points[i]); }
+						TukeyContour3D TC = TukeyContour3D(selectedPoints, 3, true);
+						ContourResult res = TC.median_contour;
+						for (Triangle t : res.triangle_indices) {
+							std::vector<Vertex> t_p;
+							t_p.push_back(Vertex({ glm::vec3(res.primal_verts[t.v1].x,res.primal_verts[t.v1].y,res.primal_verts[t.v1].z), glm::vec3(0.0f,0.4f,0.4f) }));
+							t_p.push_back(Vertex({ glm::vec3(res.primal_verts[t.v2].x,res.primal_verts[t.v2].y,res.primal_verts[t.v2].z), glm::vec3(0.0f,0.4f,0.4f) }));
+							t_p.push_back(Vertex({ glm::vec3(res.primal_verts[t.v3].x,res.primal_verts[t.v3].y,res.primal_verts[t.v3].z), glm::vec3(0.0f,0.4f,0.4f) }));
+							m_polygon->addInstance(t_p, normed);
+						}
+						m_polygon->updateInstances();
+					}
+				}
 				if (ImGui::Button("Clear Points")) {
 					m_polygon->clear();
 					m_points->clear();

@@ -15,6 +15,7 @@ class Polygon;
 class GeometryPrimitive;
 class ResilientConsensus;
 
+
 struct Selection
 {
 	std::shared_ptr<GeometryPrimitive> m_geometryType;
@@ -74,10 +75,15 @@ struct CameraData {
 struct Point {
 	double x, y;
 };
-
+struct Point3D {
+	double x, y, z;
+};
 
 struct Lines {
 	double m, c;
+};
+struct Planes {
+	double a, b, c;
 };
 struct DualKLevel
 {
@@ -85,8 +91,18 @@ struct DualKLevel
 	int depth;
 	int type;
 };
+struct DualKLevel3D
+{
+	Point3D point;
+	int depth;
+	int type;
+};
 struct DualLines {
 	double m, c;
+	int type;
+};
+struct DualPlanes {
+	double a, b,c;
 	int type;
 };
 struct ProjectionResult {
@@ -98,6 +114,9 @@ struct DashVertex {
 	glm::vec3 position;
 	glm::vec3 color;
 	float line_distance;
+};
+struct Triangle {
+	int v1, v2, v3;
 };
 #define M_PI  3.14159265358979323846
 #define LOG(message) std::cout<<(message)<<std::endl;

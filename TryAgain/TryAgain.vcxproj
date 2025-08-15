@@ -279,6 +279,7 @@
     <ClCompile Include="src\TukeyContour.cpp" />
     <ClCompile Include="src\TukeyRegion.cpp" />
     <ClCompile Include="src\ui\UI.cpp" />
+    <ClCompile Include="src\TukeyContour3D.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="assets\shaders\dashed_line.frag" />
@@ -374,6 +375,7 @@
     <ClInclude Include="src\TukeyRegion.h" />
     <ClInclude Include="src\ui\imgui_impl_opengl3.h" />
     <ClInclude Include="src\ui\UI.h" />
+    <ClInclude Include="src\TukeyContour3D.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="assets\shaders\dirlight.frag" />

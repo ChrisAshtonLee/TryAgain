@@ -6,7 +6,7 @@
 #include <src/imgui_impl_opengl3.h>
 #include <GLFW/glfw3.h>
 
-#include <common/data.h>
+#include<common/_math.h>
 #include <src/geometry_primitive/halfspace.hpp>
 #include <src/geometry_primitive/points.hpp>
 #include <src/geometry_primitive/polygon.hpp>
@@ -16,11 +16,14 @@
 #include <vector>
 #include <src/rendering/shader.h>
 #include<scripts/ResilientConsensus.hpp>  
+#include <src/TukeyContour3D.h>
 #include <common/data.h>
+
 #include <set>
 
 class UI {
 public:
+    
     UI(GLFWwindow* window, const char* glsl_version, UI_DESC desc);
     ~UI();
     struct PreviewVertex {
@@ -78,6 +81,7 @@ public:
     ImVec2 capture_start_pos;
     ImVec2 capture_end_pos;
     
+   
     std::set<int> selectedSpheres;
     glm::mat4 view;
     glm::mat4 proj;
@@ -97,6 +101,7 @@ public:
     std::vector<Selection> hoverSelections;
     std::vector<int> normalAgents;
     std::vector<int> adversaries;
+
     bool sim_running = false;
 private:
     void saveSimulationData(const std::string& filepath, const std::vector<std::vector<glm::vec2>>& history);
@@ -120,7 +125,7 @@ private:
     std::shared_ptr<Line> m_line{};
     std::shared_ptr<Sphere> m_sphere{};
     std::shared_ptr<ResilientConsensus> m_rc{};
-
+    std::unique_ptr<Quickhull3D> m_qh;
     ImDrawData * data_pointer{};
     
     
