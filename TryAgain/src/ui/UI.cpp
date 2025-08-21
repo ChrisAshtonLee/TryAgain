@@ -394,14 +394,18 @@ void UI::DrawWindow()
 						for (int i : sel.selectedIndices) { selectedPoints.push_back(m_points->points[i]); }
 						TukeyContour3D TC = TukeyContour3D(selectedPoints, 3, true);
 						ContourResult res = TC.median_contour;
-						for (Triangle t : res.triangle_indices) {
-							std::vector<Vertex> t_p;
-							t_p.push_back(Vertex({ glm::vec3(res.primal_verts[t.v1].x,res.primal_verts[t.v1].y,res.primal_verts[t.v1].z), glm::vec3(0.0f,0.4f,0.4f) }));
-							t_p.push_back(Vertex({ glm::vec3(res.primal_verts[t.v2].x,res.primal_verts[t.v2].y,res.primal_verts[t.v2].z), glm::vec3(0.0f,0.4f,0.4f) }));
-							t_p.push_back(Vertex({ glm::vec3(res.primal_verts[t.v3].x,res.primal_verts[t.v3].y,res.primal_verts[t.v3].z), glm::vec3(0.0f,0.4f,0.4f) }));
-							m_polygon->addInstance(t_p, normed);
+						if (res.primal_verts.size() >= 4) {
+
+
+							for (Triangle t : res.triangle_indices) {
+								std::vector<Vertex> t_p;
+								t_p.push_back(Vertex({ glm::vec3(res.primal_verts[t.v1].x,res.primal_verts[t.v1].y,res.primal_verts[t.v1].z), glm::vec3(0.0f,0.4f,0.4f) }));
+								t_p.push_back(Vertex({ glm::vec3(res.primal_verts[t.v2].x,res.primal_verts[t.v2].y,res.primal_verts[t.v2].z), glm::vec3(0.0f,0.4f,0.4f) }));
+								t_p.push_back(Vertex({ glm::vec3(res.primal_verts[t.v3].x,res.primal_verts[t.v3].y,res.primal_verts[t.v3].z), glm::vec3(0.0f,0.4f,0.4f) }));
+								m_polygon->addInstance(t_p, normed);
+							}
+							m_polygon->updateInstances();
 						}
-						m_polygon->updateInstances();
 					}
 				}
 				if (ImGui::Button("Clear Points")) {
