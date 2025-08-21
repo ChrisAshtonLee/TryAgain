@@ -27,7 +27,7 @@ double TukeyContour3D::cross_product(Point3D p1, Point3D p2, Point3D p3) {
 
 bool TukeyContour3D::isAbove(Point3D p, Planes l)
 {
-    if (p.z > l.a * p.x + l.b*p.y+l.c)
+    if (p.z > l.a * p.x + l.b*p.y+l.c+.00000001)
     {
         return true;
     }
@@ -169,7 +169,7 @@ TukeyContour3D::TukeyContour3D(std::vector<Vertex> input_points, int k, bool med
     // You can change these points to test different configurations.
 
     for (auto& p : input_points) {
-        primal_points.push_back({ p.position.x, p.position.y,p.position.z });
+        primal_points.push_back({ 100*p.position.x, 100*p.position.y,100*p.position.z });
     }
     std::string filename = "D:School/Dump/matrixdata.txt";
     std::ofstream outFile(filename);
@@ -328,15 +328,15 @@ TukeyContour3D::TukeyContour3D(std::vector<Vertex> input_points, int k, bool med
         int lines_above = 0;
         int lines_below = 0;
         for (const auto& line : dual_planes) {
-            double line_z_at_x_y = line.a * p.x + line.b*p.y+p.z;
+            double line_z_at_x_y = line.a * p.x + line.b*p.y+line.c;
             //std::cout << "dual intersection: " << p.x << " " << p.y << " " << p.z << std::endl;
           // std::cout << "dual_plane: " << line.a << " " << line.b << " " << line.c << std::endl;
-            if (line_z_at_x_y > p.z + .00001) {
+            if (line_z_at_x_y > p.z + .0001) {
                 lines_above++;
                 std::cout << line_z_at_x_y << "is greater than " << p.z << std::endl;
             }
 
-            if (line_z_at_x_y < p.z - .00001) {
+            if (line_z_at_x_y < p.z - .0001) {
                 std::cout << line_z_at_x_y << "is less than " << p.z << std::endl;
                 lines_below++;
             }
@@ -347,6 +347,7 @@ TukeyContour3D::TukeyContour3D(std::vector<Vertex> input_points, int k, bool med
         }
         if (lines_above == lines_below) {
             dual_k_levels.push_back({ p,depth + 1,0 });
+            std::cout << "neutral k level encountered." << std::endl;
         }
         else {
             if (depth == lines_above)
@@ -400,6 +401,7 @@ ContourResult TukeyContour3D::getContour(int k)
     int boundary_count = 0;
     for (int m = 0; m < dual_k_levels.size(); ++m) {
         const auto& p_with_depth = dual_k_levels[m];
+        std::cout << "dualk k level: " << p_with_depth.point.x << " " << p_with_depth.point.y << " " << p_with_depth.point.z << std::endl;
         if (p_with_depth.depth == k) {
             // std::cout << "point " << p_with_depth.point.x << " " << p_with_depth.point.y << " with depth " << p_with_depth.depth << " added to boundary." << std::endl;
             boundary_indices.push_back(boundary_count);
@@ -495,7 +497,7 @@ ContourResult TukeyContour3D::getContour(int k)
                                 if (!isAbove(p, l) && std::abs(l.a) < 1000000000 && std::abs(l.b) < 10000000000 && !isOn(p, l)) {
                                     //  && boundary_indices[k] != i && boundary_indices[k] != j
                                     isValid = false;
-                                    // std::cout << "FAIL: Point3D " << p.x << " " << p.y << " is below line m: " << l.m << " c: " << l.c << std::endl;
+                                     std::cout << "FAIL: Point3D " << p.x << " " << p.y  <<p.z<< " is below line a: " << l.a <<" b: "<<l.b<<" c: " << l.c << std::endl;
                                 }
                                 /* else {
                                      std::cout << "PASS: Point3D " << p.x << " " << p.y << " is above line m: " << l.m << " c: " << l.c << std::endl;
@@ -506,6 +508,8 @@ ContourResult TukeyContour3D::getContour(int k)
                                 if (isAbove(p, l) && std::abs(l.a) < 1000000000 && std::abs(l.b) < 1000000000 && !isOn(p, l)) {
                                     // && boundary_indices[k] != i && boundary_indices[k] != j
                                     isValid = false;
+                                    std::cout << "FAIL: Point3D " << p.x << " " << p.y << p.z << " is below line a: " << l.a << " b: " << l.b << " c: " << l.c << std::endl;
+
                                     // std::cout << "FAIL: Point3D " << p.x << " " << p.y << " is above line m: " << l.m << " c: " << l.c << std::endl;
                                 }
                                 /*  else {
@@ -522,11 +526,13 @@ ContourResult TukeyContour3D::getContour(int k)
                             if (low.type == -1) {
                                 if (isAbove(p, l) && std::abs(l.a) < 1000000000 && std::abs(l.b) < 1000000000 && !isOn(p, l)) {
                                     isValid = false;
+                                    std::cout << "FAIL: Point3D " << p.x << " " << p.y << p.z << " is above lower depth line a: " << l.a << " b: " << l.b << " c: " << l.c << std::endl;
                                 }
                             }
                             if (low.type == 1) {
                                 if (!isAbove(p, l) && std::abs(l.a) < 1000000000 && std::abs(l.b) < 1000000000 && !isOn(p, l)) {
                                     isValid = false;
+                                    std::cout << "FAIL: Point3D " << p.x << " " << p.y << p.z << " is above lower depth line a: " << l.a << " b: " << l.b << " c: " << l.c << std::endl;
 
                                 }
                             }
@@ -582,6 +588,7 @@ ContourResult TukeyContour3D::getContour(int k)
                             primal_vertices.push_back(p);
                         }
                     }
+                    
                 }
 
             }
@@ -610,6 +617,11 @@ ContourResult TukeyContour3D::getContour(int k)
             {
                 std::cout << s.x << " , " << s.y << " " << std::endl;
             }
+        }
+        for (int i = 0; i < primal_vertices.size(); ++i) {
+            primal_vertices[i].x /= 100; 
+            primal_vertices[i].y /= 100;
+            primal_vertices[i].z /= 100;
         }
         ContourResult res = ContourResult({ primal_vertices, contour_indices});
         return res;
