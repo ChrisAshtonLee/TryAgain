@@ -39,6 +39,7 @@ public:
     glm::vec3 cameraRight;
     glm::mat4 view;
     glm::mat4 projection;
+    float depthMagnitude;
     // camera rotational values
     float yaw; // x-axis
     float pitch; // y-axis

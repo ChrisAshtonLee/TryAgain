@@ -70,6 +70,7 @@ struct CameraData {
 	glm::vec3 Up;
 	float scr_height;
 	float scr_width;
+	float cameraDepth;
 };
 
 struct Point {
@@ -77,6 +78,22 @@ struct Point {
 };
 struct Point3D {
 	double x, y, z;
+};
+struct Face {
+	int v1, v2, v3;
+	glm::vec3 normal;
+	float distanceToOrigin; // d in n•x - d = 0
+	std::vector<int> outsidePoints;
+	bool isVisible = false;
+
+	Face(int a, int b, int c, const glm::vec3& n, float d)
+		: v1(a), v2(b), v3(c), normal(n), distanceToOrigin(d) {
+	}
+};
+
+// Internal representation of an edge
+struct Edge {
+	int v1, v2;
 };
 
 struct Lines {

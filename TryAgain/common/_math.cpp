@@ -76,6 +76,9 @@ std::vector<Point> Conv2D(std::vector<Point>& points) {
 }
 
 
+
+
+
 std::vector<Triangle> Quickhull3D::computeHull(const std::vector<glm::vec3>& points) {
     if (points.size() < 4) {
         throw std::runtime_error("Quickhull requires at least 4 points.");
@@ -90,7 +93,8 @@ std::vector<Triangle> Quickhull3D::computeHull(const std::vector<glm::vec3>& poi
 
     // Process all faces that have points on their outside
     for (size_t i = 0; i < m_hullFaces.size(); ++i) {
-        if (!m_hullFaces[i].outsidePoints.empty()) {
+        // A face might be removed during expansion, so check if it's still valid
+        if (i < m_hullFaces.size() && !m_hullFaces[i].outsidePoints.empty()) {
             expandHull(m_hullFaces[i]);
         }
     }
@@ -104,61 +108,88 @@ std::vector<Triangle> Quickhull3D::computeHull(const std::vector<glm::vec3>& poi
 }
 
 bool Quickhull3D::initialize(const std::vector<glm::vec3>& points) {
-    // 1. Find the 6 extreme points (min/max for x, y, z)
-    std::vector<int> extreme_indices(6);
-    std::vector<float> extreme_values = {
-        points[0].x, points[0].x, points[0].y, points[0].y, points[0].z, points[0].z
-    };
+    const float epsilon = 1e-5f;
 
-    for (size_t i = 1; i < points.size(); ++i) {
-        if (points[i].x < extreme_values[0]) { extreme_values[0] = points[i].x; extreme_indices[0] = i; }
-        if (points[i].x > extreme_values[1]) { extreme_values[1] = points[i].x; extreme_indices[1] = i; }
-        if (points[i].y < extreme_values[2]) { extreme_values[2] = points[i].y; extreme_indices[2] = i; }
-        if (points[i].y > extreme_values[3]) { extreme_values[3] = points[i].y; extreme_indices[3] = i; }
-        if (points[i].z < extreme_values[4]) { extreme_values[4] = points[i].z; extreme_indices[4] = i; }
-        if (points[i].z > extreme_values[5]) { extreme_values[5] = points[i].z; extreme_indices[5] = i; }
+    // 1. Find two most distant points to form the first edge.
+    int idx1 = 0, idx2 = 0;
+    float max_dist_sq = 0.0f;
+
+    for (size_t i = 0; i < points.size(); ++i) {
+        for (size_t j = i + 1; j < points.size(); ++j) {
+            glm::vec3 diff = points[j] - points[i];
+            float d_sq = glm::dot(diff,diff);
+            if (d_sq > max_dist_sq) {
+                max_dist_sq = d_sq;
+                idx1 = i;
+                idx2 = j;
+            }
+        }
     }
 
-    // 2. Find the four unique points for the initial tetrahedron
-    std::set<int> initial_indices;
-    for (int idx : extreme_indices) initial_indices.insert(idx);
+    if (max_dist_sq < epsilon * epsilon) return false; // All points are coincident.
 
-    if (initial_indices.size() < 4) return false; // Degenerate case
-
-    std::vector<int> initial_points(initial_indices.begin(), initial_indices.end());
-    int v1 = initial_points[0];
-    int v2 = initial_points[1];
-    int v3 = initial_points[2];
-    int v4 = initial_points[3]; // A bit simplistic, but often works. A robust way would find the largest tetrahedron.
-
-    // 3. Create the initial four faces, ensuring they face outwards
-    glm::vec3 centroid = (m_points[v1] + m_points[v2] + m_points[v3] + m_points[v4]) / 4.0f;
-
-    auto create_face = [&](int a, int b, int c) {
-        glm::vec3 normal = glm::normalize(glm::cross(m_points[b] - m_points[a], m_points[c] - m_points[a]));
-        float dist = glm::dot(normal, m_points[a]);
-
-        // Ensure the normal points outwards from the centroid
-        if (glm::dot(normal, m_points[a] - centroid) < 0) {
-            normal = -normal;
-            dist = -dist;
-            std::swap(b, c); // Maintain CCW order
+    // 2. Find the point farthest from the line segment (idx1, idx2).
+    int idx3 = -1;
+    float max_dist_from_line = 0.0f;
+    glm::vec3 line_dir = glm::normalize(points[idx2] - points[idx1]);
+    for (size_t i = 0; i < points.size(); ++i) {
+        if (i == idx1 || i == idx2) continue;
+        float dist = glm::length(glm::cross(points[i] - points[idx1], line_dir));
+        if (dist > max_dist_from_line) {
+            max_dist_from_line = dist;
+            idx3 = i;
         }
-        m_hullFaces.emplace_back(a, b, c, normal, dist);
-        };
+    }
 
-    create_face(v1, v2, v3);
-    create_face(v1, v3, v4);
-    create_face(v1, v4, v2);
-    create_face(v2, v4, v3);
+    if (idx3 == -1 || max_dist_from_line < epsilon) return false; // All points are collinear.
 
-    // 4. Assign all other points to the outside set of the first face they are outside of
+    // 4. Find the point farthest from the plane defined by (idx1, idx2, idx3).
+    int idx4 = -1;
+    float max_dist_from_plane = 0.0f;
+    glm::vec3 plane_normal = glm::normalize(glm::cross(points[idx2] - points[idx1], points[idx3] - points[idx1]));
+    for (size_t i = 0; i < points.size(); ++i) {
+        if (i == idx1 || i == idx2 || i == idx3) continue;
+        float dist = std::abs(glm::dot(points[i] - points[idx1], plane_normal));
+        if (dist > max_dist_from_plane) {
+            max_dist_from_plane = dist;
+            idx4 = i;
+        }
+    }
+
+    if (idx4 == -1 || max_dist_from_plane < epsilon) return false; // All points are coplanar.
+
+    // 5. We now have a non-degenerate tetrahedron (idx1, idx2, idx3, idx4).
+    // Ensure the fourth point is on the positive side of the plane (idx1, idx2, idx3)
+    // to maintain a consistent winding order (counter-clockwise).
+    if (glm::dot(plane_normal, points[idx4] - points[idx1]) < 0) {
+        // If it's on the negative side, swap two vertices to flip the normal.
+        std::swap(idx2, idx3);
+    }
+
+    // 6. Create the initial four faces of the tetrahedron.
+    int v1 = idx1, v2 = idx2, v3 = idx3, v4 = idx4;
+    m_hullFaces.emplace_back(v1, v2, v3, glm::normalize(glm::cross(m_points[v2] - m_points[v1], m_points[v3] - m_points[v1])), 0);
+    m_hullFaces.emplace_back(v1, v3, v4, glm::normalize(glm::cross(m_points[v3] - m_points[v1], m_points[v4] - m_points[v1])), 0);
+    m_hullFaces.emplace_back(v1, v4, v2, glm::normalize(glm::cross(m_points[v4] - m_points[v1], m_points[v2] - m_points[v1])), 0);
+    m_hullFaces.emplace_back(v2, v4, v3, glm::normalize(glm::cross(m_points[v4] - m_points[v2], m_points[v3] - m_points[v2])), 0);
+
+    // 7. Correct normals to point outwards from the tetrahedron's centroid.
+    glm::vec3 centroid = (m_points[v1] + m_points[v2] + m_points[v3] + m_points[v4]) / 4.0f;
+    for (auto& face : m_hullFaces) {
+        if (glm::dot(face.normal, m_points[face.v1] - centroid) < 0) {
+            face.normal = -face.normal;
+            std::swap(face.v2, face.v3); // Maintain CCW order
+        }
+        face.distanceToOrigin = glm::dot(face.normal, m_points[face.v1]);
+    }
+
+    // 8. Assign all other points to the outside set of the first face they are outside of.
     std::set<int> hull_points = { v1, v2, v3, v4 };
     for (size_t i = 0; i < points.size(); ++i) {
         if (hull_points.count(i)) continue;
 
         for (auto& face : m_hullFaces) {
-            if (distanceToFace(face, points[i]) > 1e-5f) {
+            if (distanceToFace(face, points[i]) > epsilon) {
                 face.outsidePoints.push_back(i);
                 break; // Assign to the first face it's outside of
             }
@@ -166,6 +197,7 @@ bool Quickhull3D::initialize(const std::vector<glm::vec3>& points) {
     }
     return true;
 }
+
 
 void Quickhull3D::expandHull(Face& face) {
     if (face.outsidePoints.empty() || face.isVisible) {
@@ -182,11 +214,11 @@ void Quickhull3D::expandHull(Face& face) {
             farthest_point_idx = point_idx;
         }
     }
-    if (farthest_point_idx == -1) return; // Should not happen if outsidePoints is not empty
+    if (farthest_point_idx == -1) return;
 
     // 2. Identify all visible faces from the farthest point
     std::vector<Face*> visible_faces;
-    std::map<std::pair<int, int>, int> edge_counts; // Edge -> number of visible faces sharing it
+    std::map<std::pair<int, int>, int> edge_counts;
 
     for (auto& f : m_hullFaces) {
         if (distanceToFace(f, m_points[farthest_point_idx]) > 1e-5f) {
@@ -203,7 +235,7 @@ void Quickhull3D::expandHull(Face& face) {
         }
     }
 
-    // 3. Find the horizon edges (edges shared by only one visible face)
+    // 3. Find the horizon edges
     std::vector<Edge> horizon_edges;
     for (const auto& pair : edge_counts) {
         if (pair.second == 1) {
@@ -225,16 +257,16 @@ void Quickhull3D::expandHull(Face& face) {
     size_t new_faces_start_index = m_hullFaces.size();
     for (const auto& edge : horizon_edges) {
         glm::vec3 normal = glm::normalize(glm::cross(m_points[edge.v2] - m_points[edge.v1], m_points[farthest_point_idx] - m_points[edge.v1]));
-        float dist = glm::dot(normal, m_points[edge.v1]);
+        float dist_origin = glm::dot(normal, m_points[edge.v1]);
 
-        // Ensure new faces point outwards
-        if (distanceToFace({ edge.v1, edge.v2, farthest_point_idx, normal, dist }, m_points[face.v1]) > 0) {
+        // Use any point from the old hull to determine the correct orientation
+        if (glm::dot(normal, m_points[face.v1] - m_points[edge.v1]) > 0) {
             normal = -normal;
-            dist = -dist;
-            m_hullFaces.emplace_back(edge.v1, farthest_point_idx, edge.v2, normal, dist);
+            dist_origin = -dist_origin;
+            m_hullFaces.emplace_back(edge.v1, farthest_point_idx, edge.v2, normal, dist_origin);
         }
         else {
-            m_hullFaces.emplace_back(edge.v1, edge.v2, farthest_point_idx, normal, dist);
+            m_hullFaces.emplace_back(edge.v1, edge.v2, farthest_point_idx, normal, dist_origin);
         }
     }
 
@@ -251,7 +283,7 @@ void Quickhull3D::expandHull(Face& face) {
 
     // 8. Recursively expand any new faces that have outside points
     for (size_t i = new_faces_start_index; i < m_hullFaces.size(); ++i) {
-        if (!m_hullFaces[i].outsidePoints.empty()) {
+        if (i < m_hullFaces.size() && !m_hullFaces[i].outsidePoints.empty()) {
             expandHull(m_hullFaces[i]);
         }
     }

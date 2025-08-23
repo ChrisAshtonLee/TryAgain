@@ -20,6 +20,7 @@ class Polygon : public GeometryPrimitive {
     Shader shader;
   
    // std::vector <unsigned int> indices;
+    bool suppress = true;
     glm::vec3 bc;
 public:
     float alpha = 1.0f;
@@ -55,7 +56,7 @@ public:
             return false;
         }
         int index_offset = points.size();
-		std::cout << "Adding instance with " << p.size() << " points." << std::endl;
+        if (!suppress) { std::cout << "Adding instance with " << p.size() << " points." << std::endl; }
         //points.insert(points.end(), p.begin(), p.end());
         for (const auto& point : p) {
             vertices.push_back(point.position);
@@ -66,7 +67,7 @@ public:
         {
             
              noInstances++;
-			 std::cout << "normals are being used." << std::endl;
+             if (!suppress) { std::cout << "normals are being used." << std::endl; }
              normals= norm_p;
 			 std::vector<unsigned int> temp_indices = tessellate(normals);
 			 indices_block_size.push_back(temp_indices.size());
@@ -80,16 +81,14 @@ public:
             indices_block_size.push_back(temp_indices.size());
             for (const auto& index : temp_indices) {
                 indices.push_back(index+index_offset);
-
             }
-            for (const auto& index : indices) {
-                std::cout << "index: " << index << " ";
+           
+        }
+        if (!suppress) {
+            for (int i = 0; i < vertices.size(); ++i) {
+                std::cout << "Point " << i << ": " << vertices[i].x << ", " << vertices[i].y << ", " << vertices[i].z << std::endl;
             }
         }
-        
-        for (int i = 0; i< vertices.size(); ++i) {
-            std::cout << "Point " << i << ": " << vertices[i].x << ", " << vertices[i].y << ", " << vertices[i].z << std::endl;
-		}
         for (int i = 0; i < noInstances; ++i) {
             selected_indices.push_back(false);
         }
@@ -245,9 +244,11 @@ public:
         return a.second<b.second;
     }
     std::vector<unsigned int> tessellate(std::vector<glm::vec3> verts) {
-        for (int i = 0; i < verts.size(); ++i) {
-            std::cout << "Point " << i << ": " << verts[i].x << ", " << verts[i].y << ", " << verts[i].z << std::endl;
-		}
+        if (!suppress) {
+            for (int i = 0; i < verts.size(); ++i) {
+                std::cout << "Point " << i << ": " << verts[i].x << ", " << verts[i].y << ", " << verts[i].z << std::endl;
+            }
+        }
         std::vector<unsigned int> indices;
         if (verts.size() < 3) {
             // A polygon must have at least 3 vertices.

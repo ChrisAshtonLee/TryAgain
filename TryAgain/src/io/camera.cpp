@@ -89,6 +89,7 @@ CameraData Camera::getCameraData(float scr_width,float scr_height) {
 	data.ScrollDepth = glm::vec3(0.0f, 0.0f, 0.0f); // Not used in this context, but can be set if needed
 	data.scr_height = scr_height;
 	data.scr_width = scr_width;
+	data.cameraDepth = depthMagnitude;
     return data;
 }
 /*
@@ -117,7 +118,7 @@ void Camera::updateCameraVectors() {
     direction.y = sin(glm::radians(pitch));
     direction.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
     cameraFront = glm::normalize(direction);
-
+	depthMagnitude = glm::length(cameraFront);
     cameraRight = glm::normalize(glm::cross(cameraFront, glm::vec3(0.0f, 1.0f, 0.0f)));
     //cameraRight = glm::normalize(glm::cross(cameraFront, glm::vec3(1.0f, 0.0f, 0.0f)));
     cameraUp = glm::normalize(glm::cross(cameraRight, cameraFront));

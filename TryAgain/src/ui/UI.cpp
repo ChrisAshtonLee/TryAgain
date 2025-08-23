@@ -218,10 +218,17 @@ void UI::DrawWindow()
 					m_points->deleteInstance(preview_idx);
 					m_points->load();
 				}
-			
+				if (select_mode)
+				{
+					ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.0f, 0.6f, 0.2f, 1.00f));
+				}
+				else {
+					ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.2f, 0.3f, 0.4f, 1.00f));
+				}
 				if (ImGui::Button("Select")) {
 					select_mode = !select_mode;
 				}
+				ImGui::PopStyleColor();
 				if (select_mode) drawSelectionBox();
 
 
@@ -394,6 +401,10 @@ void UI::DrawWindow()
 						for (int i : sel.selectedIndices) { selectedPoints.push_back(m_points->points[i]); }
 						TukeyContour3D TC = TukeyContour3D(selectedPoints, 3, true);
 						ContourResult res = TC.median_contour;
+						maxdepth = TC.max_depth;
+						if (res.primal_verts.size() == 1) {
+							m_points->addInstance(res.primal_verts[0].x, res.primal_verts[0].y, res.primal_verts[0].z, glm::vec3(0.0, 0.4, 0.4));
+						}
 						if (res.primal_verts.size() >= 4) {
 
 
@@ -442,7 +453,20 @@ void UI::DrawWindow()
 						std::cout << "Not enough points to create a polygon." << std::endl;
 					}
 				}
-				
+				ImGui::Separator();
+				ImGui::Text("File Operations");
+				ImGui::InputText("##savepath", save_selpath, IM_ARRAYSIZE(save_selpath));
+				ImGui::SameLine();
+				if (ImGui::Button("Save Selections")) {
+					saveToCSV(save_selpath);
+				}
+
+				ImGui::InputText("##loadpath", load_selpath, IM_ARRAYSIZE(load_selpath));
+				ImGui::SameLine();
+				if (ImGui::Button("Load From File")) {
+					loadFromCSV(load_selpath);
+				}
+				ImGui::Separator();
 				break;
 			case 2:
 				ImGui::Text("Sphere:");
@@ -676,7 +700,14 @@ glm::vec3 UI::getPreviewPos()
 	// 2. Define a default depth. 0.5f places the point halfway 
 	//    between the near and far clipping planes.
 	float winZ = 0.5f;
-
+	//int flippedY = scr_height - mousePos.y;
+	//glReadPixels(mousePos.x, flippedY, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &winZ);
+	float cd = cameraData.cameraDepth;
+	if (cd <4.0f) { winZ = cameraData.cameraDepth * 0.5f; }
+	else {
+		winZ = cameraData.cameraDepth * 0.75f;
+	}
+	//winZ = cameraData.cameraDepth*0.5f;
 	previewPos = UIscreenToWorld(
 		glm::vec2(mousePos.x, mousePos.y),
 		winZ,
@@ -1138,4 +1169,89 @@ bool UI::sort_descend(int a, int b) {
 }
 bool UI::sort_ascend(int a, int b) {
 	return a < b;
+}
+void UI::saveToCSV(const std::string& filepath) {
+	std::ofstream file(filepath);
+	if (!file.is_open()) {
+		std::cerr << "Failed to open file for writing: " << filepath << std::endl;
+		return;
+	}
+
+	// Write header
+	file << "type,pos_x,pos_y,pos_z,col_r,col_g,col_b\n";
+
+	// Iterate through each selection type (points, spheres, etc.)
+	for (const auto& sel : currentSelections) {
+		if (sel.selectedIndices.empty()) {
+			continue; // Skip if nothing is selected for this type
+		}
+
+		std::string type_str = "unknown";
+		if (sel.m_geometryType == m_points) type_str = "point";
+		else if (sel.m_geometryType == m_sphere) type_str = "sphere";
+		// Add other types like polygon if needed
+
+		// Write data for each selected instance
+		for (int idx : sel.selectedIndices) {
+			glm::vec3 pos = sel.m_geometryType->getInstanceWorldCoords(idx);
+			glm::vec3 color = sel.m_geometryType->original_colors[idx];
+			file << type_str << ","
+				<< pos.x << "," << pos.y << "," << pos.z << ","
+				<< color.r << "," << color.g << "," << color.b << "\n";
+		}
+	}
+
+	file.close();
+	std::cout << "Successfully saved selections to " << filepath << std::endl;
+}
+void UI::loadFromCSV(const std::string& filepath) {
+	std::ifstream file(filepath);
+	if (!file.is_open()) {
+		std::cerr << "Failed to open file for reading: " << filepath << std::endl;
+		return;
+	}
+
+	std::string line;
+	// Skip header line
+	std::getline(file, line);
+
+	while (std::getline(file, line)) {
+		std::stringstream ss(line);
+		std::string item;
+
+		std::string type;
+		glm::vec3 pos;
+		glm::vec3 color;
+
+		// Read type
+		std::getline(ss, type, ',');
+
+		// Read position
+		std::getline(ss, item, ','); pos.x = std::stof(item);
+		std::getline(ss, item, ','); pos.y = std::stof(item);
+		std::getline(ss, item, ','); pos.z = std::stof(item);
+
+		// Read color
+		std::getline(ss, item, ','); color.r = std::stof(item);
+		std::getline(ss, item, ','); color.g = std::stof(item);
+		std::getline(ss, item, ','); color.b = std::stof(item);
+
+		// Add instance based on type
+		if (type == "point") {
+			m_points->addInstance(pos.x, pos.y, pos.z, color);
+		}
+		else if (type == "sphere") {
+			// Assuming a default size for loaded spheres, as size is not in the CSV
+			float default_radius = 0.1f;
+			m_sphere->addInstance(pos, glm::vec3(default_radius), Material::emerald, color);
+		}
+		// Add other types as needed
+	}
+
+	// Update GPU buffers after loading all new instances
+	m_points->load();
+	m_sphere->updateInstances();
+
+	file.close();
+	std::cout << "Successfully loaded selections from " << filepath << std::endl;
 }

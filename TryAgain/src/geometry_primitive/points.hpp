@@ -25,7 +25,7 @@ class Points : public GeometryPrimitive {
   
 public:
     std::vector <unsigned int> indices;
-    std::vector<glm::vec3> original_colors;
+   // std::vector<glm::vec3> original_colors;
    // int noInstances = 0;
    // int noInstances = 0;
     std::vector<Vertex> points;

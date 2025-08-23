@@ -494,8 +494,10 @@ void scrollChanged(GLFWwindow* window, double dx, double dy) {
 	}
 	if (scrollDy != 0 && uiPtr->previewMode){
 		glm::vec3 depth(camPtr->cameraFront.x + scrollDy * .1, camPtr->cameraFront.y + scrollDy * .1, camPtr->cameraFront.z + scrollDy * .1);
-		uiPtr->previewDepth += glm::vec3(0.1*scrollDy)* camPtr->cameraFront; 
+		uiPtr->previewDepth += glm::vec3(0.05 * scrollDy) * camPtr->cameraFront;
+		uiPtr->previewDepth += glm::vec3(0.05*scrollDy)* camPtr->cameraFront; 
 		camData.ScrollDepth = depth;
+		
 		// Adjust the zoom speed as needed
 		//std::cout << "Preview Depth: " << uiPtr->previewDepth << std::endl;
 	}

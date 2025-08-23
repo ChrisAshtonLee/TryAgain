@@ -14,7 +14,7 @@
  * @return < 0 for a clockwise turn (p3 is to the right).
  * @return = 0 for collinear points.
  */
-
+const double EPSILON = 1e-6;
 double TukeyContour3D::cross_product(Point3D p1, Point3D p2, Point3D p3) {
     return (p2.x - p1.x) * (p3.y - p1.y) - (p2.y - p1.y) * (p3.x - p1.x);
 }
@@ -27,23 +27,14 @@ double TukeyContour3D::cross_product(Point3D p1, Point3D p2, Point3D p3) {
 
 bool TukeyContour3D::isAbove(Point3D p, Planes l)
 {
-    if (p.z > l.a * p.x + l.b*p.y+l.c+.00000001)
-    {
-        return true;
-    }
-    else {
-        return false;
-    }
+    double plane_z_at_point = l.a * p.x + l.b * p.y + l.c;
+    return (p.z - plane_z_at_point-.00001) > EPSILON;
 }
 
 bool TukeyContour3D::isOn(Point3D p, Planes l)
 {
-    if (std::abs(p.z - (l.a * p.x +l.b*p.z+ l.c)) < 0.0001) {
-        return true;
-    }
-    else {
-        return false;
-    }
+    double plane_z_at_point = l.a * p.x + l.b * p.y + l.c;
+    return std::abs(p.z - plane_z_at_point) <= EPSILON;
 
 }
 
@@ -58,8 +49,8 @@ std::vector<Point3D> TukeyContour3D::makeUnique(std::vector<Point3D> arr)
         //cout << " do this once:" << i<<" " << arr.size() << endl;
         if (uniqueIdxList.size() > 0) {
             for (int j = 0; j < uniqueIdxList.size(); ++j) {
-                if (std::abs(arr[i].x - arr[uniqueIdxList[j]].x) < .00001 && std::abs(arr[i].y - arr[uniqueIdxList[j]].y) < .00001
-                    && std::abs(arr[i].z - arr[uniqueIdxList[j]].z) < .00001) {
+                if (std::abs(arr[i].x - arr[uniqueIdxList[j]].x) < EPSILON && std::abs(arr[i].y - arr[uniqueIdxList[j]].y) < EPSILON
+                    && std::abs(arr[i].z - arr[uniqueIdxList[j]].z) < EPSILON) {
                     inlist = true;
                 }
             }
@@ -79,87 +70,84 @@ std::vector<Point3D> TukeyContour3D::makeUnique(std::vector<Point3D> arr)
 bool TukeyContour3D::anyParallel(Planes p1, Planes p2, Planes p3)
 {
     bool res = false;
-    if ((p1.a == p2.a && p1.b == p2.b) || (p1.a == p3.a && p1.a == p3.b) || (p2.a == p3.a && p2.b == p3.b)) { res = true; }
+    if ((std::abs(p1.a- p2.a)<EPSILON && std::abs(p1.b - p2.b) < EPSILON) || (std::abs(p1.a - p3.a) < EPSILON && std::abs(p1.b - p3.b) < EPSILON) || (std::abs(p3.a - p3.a) < EPSILON && std::abs(p2.b - p3.b) < EPSILON)) {
+        res = true;
+       
+    }
+	
     return res;
 }
 
+
 Point3D TukeyContour3D::planesIntersect(Planes l1, Planes l2, Planes l3)
 {
-
-    if (!anyParallel(l1, l2, l3)) {
-        glm::vec4 p1(-l1.a, -l1.b, 1.0f, -l1.c);
-        glm::vec4 p2(-l2.a, -l2.b, 1.0f, -l2.c);
-        glm::vec4 p3(-l3.a, -l3.b, 1.0f, -l3.c);
-        glm::mat3 A = glm::mat3(
-            glm::vec3(p1.x, p1.y, p1.z),
-            glm::vec3(p2.x, p2.y, p2.z),
-            glm::vec3(p3.x, p3.y, p3.z)
-        );
-        glm::vec3 B(-p1.w, -p2.w, -p3.w);
-        float detA = glm::determinant(A);
-        if (std::abs(detA) > 1e-6)
-        {
-            glm::mat3 A_x = A;
-            A_x[0] = B;
-            glm::mat3 A_y = A;
-            A_y[1] = B;
-            glm::mat3 A_z = A;
-            A_z[2] = B; // Replace third column (for z)
-            Point3D cand_point = Point3D({ glm::determinant(A_x) / detA, glm::determinant(A_y) / detA, glm::determinant(A_z) / detA });
-            return cand_point;
-        }
-        
+    if (anyParallel(l1, l2, l3)) {
+        return Point3D{ NAN, NAN, NAN };
     }
+
+    // Use double-precision GLM types for higher accuracy in calculations.
+    glm::dvec4 p1(-l1.a, -l1.b, 1.0, -l1.c);
+    glm::dvec4 p2(-l2.a, -l2.b, 1.0, -l2.c);
+    glm::dvec4 p3(-l3.a, -l3.b, 1.0, -l3.c);
+
+    // Corrected code
+    glm::dmat3 A = glm::dmat3(
+        glm::dvec3(p1.x, p2.x, p3.x), // Now a column vector
+        glm::dvec3(p1.y, p2.y, p3.y), // Now a column vector
+        glm::dvec3(p1.z, p2.z, p3.z)  // Now a column vector
+    );
+    glm::dvec3 B(-p1.w, -p2.w, -p3.w);
+    double detA = glm::determinant(A);
+
+    // Check for singularity (planes don't form a single intersection point).
+    if (std::abs(detA) < EPSILON)
+    {
+        if (!suppress) {
+            std::cout << "Planes are parallel or coincident, no unique intersection point." << std::endl;
+        }
+        return Point3D{ NAN, NAN, NAN };
+    }
+
+    // Use Cramer's rule with double precision to find the intersection.
+    glm::dmat3 A_x = A;
+    A_x[0] = B; // Replace first column for x
+    glm::dmat3 A_y = A;
+    A_y[1] = B; // Replace second column for y
+    glm::dmat3 A_z = A;
+    A_z[2] = B; // Replace third column for z
+
+    Point3D cand_point = Point3D({
+        glm::determinant(A_x) / detA,
+        glm::determinant(A_y) / detA,
+        glm::determinant(A_z) / detA
+        });
+
+    return cand_point;
 }
 Point3D TukeyContour3D::planesIntersect(DualPlanes d1, DualPlanes d2, DualPlanes d3)
 {
-    Planes l1 = Planes({ d1.a, d1.b,d1.c }); Planes l2 = Planes({ d2.a, d2.b,d2.c }); Planes l3 = Planes({ d3.a, d3.b,d3.c });
-    if (!anyParallel(l1, l2, l3)) {
-        glm::vec4 p1(-l1.a, -l1.b, 1.0f, -l1.c);
-        glm::vec4 p2(-l2.a, -l2.b, 1.0f, -l2.c);
-        glm::vec4 p3(-l3.a, -l3.b, 1.0f, -l3.c);
-        glm::mat3 A = glm::mat3(
-            glm::vec3(p1.x, p2.x, p3.x),
-            glm::vec3(p1.y, p2.y, p3.y),
-            glm::vec3(p1.z, p2.z, p3.z)
-        );
-        glm::vec3 B(-p1.w, -p2.w, -p3.w);
-        float detA = glm::determinant(A);
-        if (std::abs(detA) > 1e-6)
-        {
-            glm::mat3 A_x = A;
-            A_x[0] = B;
-            glm::mat3 A_y = A;
-            A_y[1] = B;
-            glm::mat3 A_z = A;
-            A_z[2] = B; // Replace third column (for z)
-            Point3D cand_point = Point3D({ glm::determinant(A_x) / detA, glm::determinant(A_y) / detA, glm::determinant(A_z) / detA });
-            return cand_point;
-        }
-
-    }
+    // Reuse the high-precision planesIntersect function.
+    Planes l1 = Planes({ d1.a, d1.b, d1.c });
+    Planes l2 = Planes({ d2.a, d2.b, d2.c });
+    Planes l3 = Planes({ d3.a, d3.b, d3.c });
+    return planesIntersect(l1, l2, l3);
 }
 bool TukeyContour3D::validIntersection(Point3D l)
 {
     bool valid = false;
-    float a = l.x;
-    float b = l.y;
-    float c = -l.z;
+    double a = l.x;
+    double b = l.y;
+    double c = -l.z;
     for (const auto& p : primal_points) {
 
         if (std::abs(p.z - (p.x * a +p.y*b+ c)) < .1) {
             valid = true;
 
         }
-        /*  else {
-              std::cout << "p.y: " << p.y << " p.x: " << p.x << " m:" << m << " c:" << c << " diff: " << std::abs(p.y - (p.x * m + c)) << std::endl;
-          }*/
+     
 
     }
-    /*if (!valid) {
-
-        std::cout << "Dual Line: " << l.x << ", " << l.y << " is not valid." << std::endl;
-    }*/
+   
     return valid;
 }
 
@@ -193,7 +181,7 @@ TukeyContour3D::TukeyContour3D(std::vector<Vertex> input_points, int k, bool med
     // A point (px, py) in the primal space is transformed into a line y = px*x - py in the dual space.
 
     for (const auto& p : primal_points) {
-        if (!suppress) std::cout << "Primal Point3D: (" << p.x << ", " << p.y << ")" << std::endl;
+        if (!suppress) { std::cout << "Primal Point3D: (" << p.x << ", " << p.y << ")" << std::endl; }
         dual_planes.push_back({ p.x,p.y, -p.z });
     }
     //   std::cout << "Step 1: Transformed " << primal_points.size() << " points to dual lines." << std::endl;
@@ -207,43 +195,32 @@ TukeyContour3D::TukeyContour3D(std::vector<Vertex> input_points, int k, bool med
                 const Planes& l2 = dual_planes[j];
                 const Planes& l3 = dual_planes[k];
                 // Check for parallel lines to avoid division by zero.
-
-                if (!anyParallel(l1,l2,l3)) {
-                    glm::vec4 p1(-l1.a, -l1.b, 1.0f, -l1.c);
-                    glm::vec4 p2(-l2.a, -l2.b, 1.0f, -l2.c);
-                    glm::vec4 p3(-l3.a, -l3.b, 1.0f, -l3.c);
-                    glm::mat3 A = glm::mat3(
-                        glm::vec3(p1.x, p2.x, p3.x),
-                        glm::vec3(p1.y, p2.y, p3.y),
-                        glm::vec3(p1.z, p2.z, p3.z)
-                    );
-                    glm::vec3 B(-p1.w, -p2.w, -p3.w);
-                    float detA = glm::determinant(A);
-                    if (std::abs(detA) > 1e-6)
-                    {
-                        glm::mat3 A_x = A;
-                        A_x[0] = B; 
-                        glm::mat3 A_y = A;
-                        A_y[1] = B; 
-                        glm::mat3 A_z = A;
-                        A_z[2] = B; // Replace third column (for z)
-                        Point3D cand_point = Point3D({ glm::determinant(A_x) / detA, glm::determinant(A_y) / detA, glm::determinant(A_z) / detA });
-                        std::cout << "planes: " << "l1: " << l1.a << " " << l1.b << " " << l1.c << std::endl;
-                        std::cout << "l2: " << l2.a << " " << l2.b << " " << l2.c << std::endl;
-                        std::cout << "l3: " << l3.a << " " << l3.b << " " << l3.c << std::endl;
-                        std::cout << "intersect at point :" << cand_point.x << " " << cand_point.y << " " << cand_point.z << std::endl;
+                if (anyParallel(l1, l2, l3)) {
+                    continue; // Skip this combination if any two lines are parallel.
+				}
+				Point3D cand_point = planesIntersect(l1, l2, l3);
+                if (!suppress) {
+                    std::cout << "Checking intersection of planes: " << i << ": " << l1.a << " " << l1.b << " " << l1.c <<
+                        ", " << j << ": " << l2.a << " " << l2.b << " " << l2.c << ", " << k << ": " << l3.a << " " << l3.b << " " << l3.c << std::endl;
+                    std::cout << "intersection point: " << cand_point.x << ", " << cand_point.y << ", " << cand_point.z << std::endl;
+                }
+                if (!std::isnan(cand_point.x) ) {
+                    //if (validIntersection(cand_point)) {
                         dual_intersections.push_back(cand_point);
-                       
-                      /*  if (validIntersection(cand_point)) {
-                            dual_intersections.push_back(cand_point);
-                        }*/
-                    }
+                        dual_int_origin.push_back({ i,j });
+                        if (!suppress) { std::cout << "Dual Intersection Point: (" << cand_point.x << ", " << cand_point.y << ", " << cand_point.z << ")" << std::endl; }
+                    //}
+				}
+                
                     else {
+                    if (!suppress) {
+                        std::cout << "Invalid intersection found at: (" << cand_point.x << ", " << cand_point.y << ", " << cand_point.z << ")" << std::endl;
+                    }
                         if (primal_points[i].x < 1e-6 && primal_points[j].x < 1e-6 && primal_points[k].x < 1e-6)
                         {
                             // all points lie on line y = c
                             int above = 0, below = 0;
-                            float yPos = primal_points[i].y;
+                            double yPos = primal_points[i].y;
                             for (int pp = 0; pp < primal_points.size(); ++pp) {
                                 if (primal_points[pp].y < yPos && std::abs(yPos - primal_points[pp].y)>.000000001)
                                 {
@@ -256,18 +233,22 @@ TukeyContour3D::TukeyContour3D(std::vector<Vertex> input_points, int k, bool med
                             }
                             if (above > below) {
                                 vert_k_levels.push_back({ Point3D{yPos,0.0f,0.0f},below + 1,1,2 });
-                                std::cout << "horizontal line: " << "y = " << yPos << " type 1" << " depth: " << below + 1 << std::endl;
+                                if (!suppress) {
+                                    std::cout << "horizontal line: " << "y = " << yPos << " type 1" << " depth: " << below + 1 << std::endl;
+                                }
                             }
                             if (below > above) {
                                 vert_k_levels.push_back({ Point3D{0.0f,yPos,0.0f},above + 1,-1,2 });
-                                std::cout << "horizontal line: " << "y = " << yPos << " type -1" << " depth: " << above + 1 << std::endl;
+                                if (!suppress) {
+                                    std::cout << "horizontal line: " << "y = " << yPos << " type -1" << " depth: " << above + 1 << std::endl;
+                                }
                             }
                         }
                         else if (primal_points[i].y < 1e-6 && primal_points[j].y < 1e-6 && primal_points[k].y < 1e-6)
                         {
                             //all points lie on line x = c
                             int left = 0, right = 0;
-                            float xPos = primal_points[i].x;
+                            double xPos = primal_points[i].x;
                             for (int pp = 0; pp < primal_points.size(); ++pp) {
                                 if (primal_points[pp].x < xPos && std::abs(xPos - primal_points[pp].x)>.000000001)
                                 {
@@ -280,17 +261,19 @@ TukeyContour3D::TukeyContour3D(std::vector<Vertex> input_points, int k, bool med
                             }
                             if (right > left) {
                                 vert_k_levels.push_back({ Point3D{xPos,0.0f,0.0f},left + 1,1 ,1});
-                                std::cout << "vertical line: " << "x = " << xPos << " type 1" << " depth: " << left + 1 << std::endl;
+                                if (!suppress) { std::cout << "vertical line: " << "x = " << xPos << " type 1" << " depth: " << left + 1 << std::endl; }
                             }
                             if (left > right) {
                                 vert_k_levels.push_back({ Point3D{xPos,0.0f,0.0f},right + 1,-1,1 });
-                                std::cout << "vertical line: " << "x = " << xPos << " type -1" << " depth: " << right + 1 << std::endl;
+                                if (!suppress) {
+                                    std::cout << "vertical line: " << "x = " << xPos << " type -1" << " depth: " << right + 1 << std::endl;
+                                }
                             }
                         }
                         else
                         {
-                            float m = (primal_points[i].y - primal_points[j].y) / (primal_points[i].x - primal_points[j].x);
-                            float b = primal_points[i].y - m * primal_points[i].x;
+                            double m = (primal_points[i].y - primal_points[j].y) / (primal_points[i].x - primal_points[j].x);
+                            double b = primal_points[i].y - m * primal_points[i].x;
                             int above = 0, below = 0;
                             for (int pp = 0; pp < primal_points.size(); ++pp) {
                                 if (primal_points[pp].y < primal_points[pp].x * m + b && std::abs(primal_points[pp].y - primal_points[pp].x * m + b)>.0000001) {
@@ -313,7 +296,7 @@ TukeyContour3D::TukeyContour3D(std::vector<Vertex> input_points, int k, bool med
                         // std::cout << "vertical line encountered." << std::endl;
                         // LOG("vertical line encountered.");
                        
-                    }
+                    
                  }
                     
             }
@@ -331,13 +314,13 @@ TukeyContour3D::TukeyContour3D(std::vector<Vertex> input_points, int k, bool med
             double line_z_at_x_y = line.a * p.x + line.b*p.y+line.c;
             //std::cout << "dual intersection: " << p.x << " " << p.y << " " << p.z << std::endl;
           // std::cout << "dual_plane: " << line.a << " " << line.b << " " << line.c << std::endl;
-            if (line_z_at_x_y > p.z + .0001) {
+            if (line_z_at_x_y > p.z + EPSILON) {
                 lines_above++;
-                std::cout << line_z_at_x_y << "is greater than " << p.z << std::endl;
+                if (!suppress) { std::cout << line_z_at_x_y << "is greater than " << p.z << std::endl;}
             }
 
-            if (line_z_at_x_y < p.z - .0001) {
-                std::cout << line_z_at_x_y << "is less than " << p.z << std::endl;
+            if (line_z_at_x_y < p.z - EPSILON) {
+                if (!suppress) { std::cout << line_z_at_x_y << "is less than " << p.z << std::endl; }
                 lines_below++;
             }
         }
@@ -401,7 +384,9 @@ ContourResult TukeyContour3D::getContour(int k)
     int boundary_count = 0;
     for (int m = 0; m < dual_k_levels.size(); ++m) {
         const auto& p_with_depth = dual_k_levels[m];
-        std::cout << "dualk k level: " << p_with_depth.point.x << " " << p_with_depth.point.y << " " << p_with_depth.point.z << std::endl;
+        if (!suppress) {
+            std::cout << "dualk k level: " << p_with_depth.point.x << " " << p_with_depth.point.y << " " << p_with_depth.point.z << std::endl;
+        }
         if (p_with_depth.depth == k) {
             // std::cout << "point " << p_with_depth.point.x << " " << p_with_depth.point.y << " with depth " << p_with_depth.depth << " added to boundary." << std::endl;
             boundary_indices.push_back(boundary_count);
@@ -434,9 +419,9 @@ ContourResult TukeyContour3D::getContour(int k)
     //  std::cout << "Step 4: Identified " << median_dual_vertices.size() << " vertices with maximum depth." << std::endl;
     std::vector<DualPlanes> primal_contour_planes;
 
-    if (median_dual_vertices.size() < 4) {
-        //std::cerr << "Error: Degenerate case. Not enough vertices to form a contour." << std::endl;
-        std::cout << "Too few vertices to form a contour." << std::endl;
+    if (median_dual_vertices.size() < 3) {
+        std::cerr << "Error: Degenerate case. Not enough vertices to form a contour." << std::endl;
+       // std::cout << "Too few vertices to form a contour." << std::endl;
         //for (const auto& p : median_dual_vertices) {
         //    primal_contour_planes.push_back({ p.point.x, -p.point.y, p.type });
 
@@ -452,7 +437,7 @@ ContourResult TukeyContour3D::getContour(int k)
         //        }
         //    }
         //}
-
+		return ContourResult{ {}, {} }; // Return empty contour if not enough vertices
     }
     else {
         // --- Step 5: Compute the convex hull of the median vertices in the dual space ---
@@ -465,7 +450,7 @@ ContourResult TukeyContour3D::getContour(int k)
         for (const auto& p : median_dual_vertices) {
 
             primal_contour_planes.push_back({ p.point.x,p.point.y,-p.point.z,p.type });
-            //  std::cout << "primal contour line m: " << p.point.x << " c: " << -p.point.y << std::endl;
+            if (!suppress) { std::cout << "primal contour line m: " << p.point.x << " c: " << -p.point.y << std::endl; }
         }
 
 
@@ -486,7 +471,7 @@ ContourResult TukeyContour3D::getContour(int k)
 
                         
                         Point3D p = planesIntersect(l1, l2, l3);
-                        std::cout << "Candidate point " << p.x << ", " << p.y <<", "<< p.z << " found." << std::endl;
+                        if (!suppress) { std::cout << "Candidate point " << p.x << ", " << p.y << ", " << p.z << " found." << std::endl; }
 
                         bool isValid = true;
                         for (int v = 0; v < boundary_indices.size(); ++v)
@@ -497,7 +482,7 @@ ContourResult TukeyContour3D::getContour(int k)
                                 if (!isAbove(p, l) && std::abs(l.a) < 1000000000 && std::abs(l.b) < 10000000000 && !isOn(p, l)) {
                                     //  && boundary_indices[k] != i && boundary_indices[k] != j
                                     isValid = false;
-                                     std::cout << "FAIL: Point3D " << p.x << " " << p.y  <<p.z<< " is below line a: " << l.a <<" b: "<<l.b<<" c: " << l.c << std::endl;
+                                    if (!suppress) { std::cout << "FAIL: Point3D " << p.x << " " << p.y << p.z << " is below line a: " << l.a << " b: " << l.b << " c: " << l.c << std::endl; }
                                 }
                                 /* else {
                                      std::cout << "PASS: Point3D " << p.x << " " << p.y << " is above line m: " << l.m << " c: " << l.c << std::endl;
@@ -508,7 +493,7 @@ ContourResult TukeyContour3D::getContour(int k)
                                 if (isAbove(p, l) && std::abs(l.a) < 1000000000 && std::abs(l.b) < 1000000000 && !isOn(p, l)) {
                                     // && boundary_indices[k] != i && boundary_indices[k] != j
                                     isValid = false;
-                                    std::cout << "FAIL: Point3D " << p.x << " " << p.y << p.z << " is below line a: " << l.a << " b: " << l.b << " c: " << l.c << std::endl;
+                                    if (!suppress) { std::cout << "FAIL: Point3D " << p.x << " " << p.y << p.z << " is below line a: " << l.a << " b: " << l.b << " c: " << l.c << std::endl; }
 
                                     // std::cout << "FAIL: Point3D " << p.x << " " << p.y << " is above line m: " << l.m << " c: " << l.c << std::endl;
                                 }
@@ -526,13 +511,13 @@ ContourResult TukeyContour3D::getContour(int k)
                             if (low.type == -1) {
                                 if (isAbove(p, l) && std::abs(l.a) < 1000000000 && std::abs(l.b) < 1000000000 && !isOn(p, l)) {
                                     isValid = false;
-                                    std::cout << "FAIL: Point3D " << p.x << " " << p.y << p.z << " is above lower depth line a: " << l.a << " b: " << l.b << " c: " << l.c << std::endl;
+                                    if (!suppress) { std::cout << "FAIL: Point3D " << p.x << " " << p.y << p.z << " is above lower depth line a: " << l.a << " b: " << l.b << " c: " << l.c << std::endl; }
                                 }
                             }
                             if (low.type == 1) {
                                 if (!isAbove(p, l) && std::abs(l.a) < 1000000000 && std::abs(l.b) < 1000000000 && !isOn(p, l)) {
                                     isValid = false;
-                                    std::cout << "FAIL: Point3D " << p.x << " " << p.y << p.z << " is above lower depth line a: " << l.a << " b: " << l.b << " c: " << l.c << std::endl;
+                                    if (!suppress) { std::cout << "FAIL: Point3D " << p.x << " " << p.y << p.z << " is above lower depth line a: " << l.a << " b: " << l.b << " c: " << l.c << std::endl; }
 
                                 }
                             }
@@ -588,7 +573,14 @@ ContourResult TukeyContour3D::getContour(int k)
                             primal_vertices.push_back(p);
                         }
                     }
-                    
+                    else {
+                        if (!suppress) {
+                            std::cout << "Planes " << l1.a << " " << l1.b << " " << l1.c << " and "
+                                << l2.a << " " << l2.b << " " << l2.c << " and "
+                                << l3.a << " " << l3.b << " " << l3.c
+                                << " are parallel, skipping intersection." << std::endl;
+                        }
+                    }
                 }
 
             }
@@ -611,11 +603,11 @@ ContourResult TukeyContour3D::getContour(int k)
         //   std::cout << "Step 8: Final contour computed." << std::endl;
 
         //final_contour = makeUnique(final_contour);
-        if (!suppress) {
+        if (!suppress || suppress) {
             std::cout << "unique points of final contour: " << std::endl;
-            for (auto& s : final_contour)
+            for (auto& s : primal_vertices)
             {
-                std::cout << s.x << " , " << s.y << " " << std::endl;
+                std::cout << s.x << " , " << s.y << " " <<" "<<s.z<< std::endl;
             }
         }
         for (int i = 0; i < primal_vertices.size(); ++i) {

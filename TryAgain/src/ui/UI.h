@@ -55,7 +55,8 @@ public:
         capture_area_set = false;
     }
     void DrawPopups();
-    
+    void saveToCSV(const std::string& filepath);
+    void loadFromCSV(const std::string& filepath);
 
     glm::vec2 UIworldToScreen( glm::vec3 worldPos,  glm::mat4 model,  glm::mat4 view,  glm::mat4 projection, int screenWidth, int screenHeight);
     glm::vec3 UIscreenToWorld(glm::vec2 screenPos, float z, glm::mat4 model,  glm::mat4 view,  glm::mat4 projection, int screenWidth, int screenHeight);
@@ -78,6 +79,8 @@ public:
     bool set_capture_area_mode = false;
     bool capture_area_set = false;
     char save_path[256] = "C:/Users/85chr/source/repos/TryAgain/plots/Sim.csv";
+	char save_selpath[256] = "C:/Users/85chr/source/repos/TryAgain/plots/SavedSel.csv";
+	char load_selpath[256] = "C:/Users/85chr/source/repos/TryAgain/plots/SavedSel.csv";
     ImVec2 capture_start_pos;
     ImVec2 capture_end_pos;
     

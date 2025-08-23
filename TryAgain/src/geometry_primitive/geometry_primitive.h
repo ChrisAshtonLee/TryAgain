@@ -13,6 +13,7 @@ class GeometryPrimitive {
 public:
 	Shader shader;
 	Shader previewShader;
+	std::vector<glm::vec3> original_colors;
 	void updateCameraMatrices(glm::mat4 projView, glm::vec3 camPos);
 	int noInstances =0;
 	virtual void load();
