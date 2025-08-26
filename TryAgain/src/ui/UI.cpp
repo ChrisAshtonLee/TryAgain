@@ -1,3 +1,4 @@
+#include <src/ui/gif.h>
 #include <src/UI/UI.h>
 #include <glad/glad.h>
 #include <glm/gtc/type_ptr.hpp>
@@ -125,306 +126,313 @@ void UI::DrawWindow()
 
 		switch (gui_mode) {
 		case 0:
-				
-				ImGui::Text("Type in hyperplane coefficients:");
-				ImGui::InputText("a1", data.input1, IM_ARRAYSIZE(data.input1));
-				ImGui::InputText("a2", data.input2, IM_ARRAYSIZE(data.input2));
-				ImGui::InputText("a3", data.input3, IM_ARRAYSIZE(data.input3));
-				ImGui::ColorEdit3("Color", (float*)&clear_color);
 
-				/*if (ImGui::Button("Color")) {
-					std::cout << "color " << clear_color.w << " " << clear_color.x << " " << clear_color.z << " " << clear_color.z << std::endl;
-				}*/
-				ImGui::SameLine();
-				if (ImGui::Button("Enter")) {
+			ImGui::Text("Type in hyperplane coefficients:");
+			ImGui::InputText("a1", data.input1, IM_ARRAYSIZE(data.input1));
+			ImGui::InputText("a2", data.input2, IM_ARRAYSIZE(data.input2));
+			ImGui::InputText("a3", data.input3, IM_ARRAYSIZE(data.input3));
+			ImGui::ColorEdit3("Color", (float*)&clear_color);
 
-					m_halfspace->addInstance(std::atof(data.input1), std::atof(data.input2), std::atof(data.input3), glm::vec3(clear_color.x, clear_color.y, clear_color.z));
-					m_halfspace->load();
-					//halfspace.print();
+			/*if (ImGui::Button("Color")) {
+				std::cout << "color " << clear_color.w << " " << clear_color.x << " " << clear_color.z << " " << clear_color.z << std::endl;
+			}*/
+			ImGui::SameLine();
+			if (ImGui::Button("Enter")) {
 
-				}
-				if (ImGui::Button("Clear Halfspaces")) {
+				m_halfspace->addInstance(std::atof(data.input1), std::atof(data.input2), std::atof(data.input3), glm::vec3(clear_color.x, clear_color.y, clear_color.z));
+				m_halfspace->load();
+				//halfspace.print();
 
-					m_halfspace->clear();
-				}
-				break;
-			case 1:
-				
-				ImGui::Text("Point:");
-				ImGui::InputText("x y z", data.input1, IM_ARRAYSIZE(data.input1));
-				ImGui::ColorEdit3("Color", (float*)&clear_color);
-				ImGui::SameLine();
-				if (ImGui::Button("Add Point")) {
-					glm::vec3 coords = vecFromString(data.input1);
+			}
+			if (ImGui::Button("Clear Halfspaces")) {
 
-					//if (sizeof(coords)==3){
-					//m_points->addPoint(std::atof(data.input1), std::atof(data.input2), std::atof(data.input3), glm::vec3(clear_color.x, clear_color.y, clear_color.z));
-					m_points->addInstance(coords.x, coords.y, coords.z, glm::vec3(clear_color.x, clear_color.y, clear_color.z));
-					m_points->load();
-			
+				m_halfspace->clear();
+			}
+			break;
+		case 1:
 
-				}
-				
-				if (click_points)
+			ImGui::Text("Point:");
+			ImGui::InputText("x y z", data.input1, IM_ARRAYSIZE(data.input1));
+			ImGui::ColorEdit3("Color", (float*)&clear_color);
+			ImGui::SameLine();
+			if (ImGui::Button("Add Point")) {
+				glm::vec3 coords = vecFromString(data.input1);
+
+				//if (sizeof(coords)==3){
+				//m_points->addPoint(std::atof(data.input1), std::atof(data.input2), std::atof(data.input3), glm::vec3(clear_color.x, clear_color.y, clear_color.z));
+				m_points->addInstance(coords.x, coords.y, coords.z, glm::vec3(clear_color.x, clear_color.y, clear_color.z));
+				m_points->load();
+
+
+			}
+
+			if (click_points)
+			{
+				ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.0f, 0.6f, 0.2f, 1.00f));
+			}
+			else {
+				ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.2f, 0.3f, 0.4f, 1.00f));
+			}
+
+			if (ImGui::Button("Place point")) {
+				//glm::vec2 screenpos;
+				//previewMode = true;
+				click_points = !click_points;
+
+			}
+			ImGui::PopStyleColor();
+
+			if (click_points && ImGui::IsKeyDown(ImGuiKey_LeftShift)) {
+				previewMode = true;
+
+				previewPos = getPreviewPos();
+				//previewPos = glm::vec3(0.0f, 0.0f, 0.0f);
+				//static float previewDepth = 0.0f; // Start at z=0
+
+				if (!previewInstance)
 				{
-					ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.0f, 0.6f, 0.2f, 1.00f));
-				}
-				else {
-					ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.2f, 0.3f, 0.4f, 1.00f));
-				}
 
-				if (ImGui::Button("Place point")) {
-					//glm::vec2 screenpos;
-					//previewMode = true;
-					click_points = !click_points;
-					
-				}
-				ImGui::PopStyleColor();
-			
-				if (click_points && ImGui::IsKeyDown(ImGuiKey_LeftShift)) {
-					previewMode = true;
-				
-					previewPos = getPreviewPos();
-					//previewPos = glm::vec3(0.0f, 0.0f, 0.0f);
-					//static float previewDepth = 0.0f; // Start at z=0
-					
-					if (!previewInstance)
-					{
-						
-						previewInstance = true;
-						preview_idx = m_points->getInstanceCount();
-						m_points->addInstance(previewPos.x, previewPos.y, previewPos.z, glm::vec3(0.0,1.0,0.0f));
-						m_points->load();
-					}
-					SnapToPosition(previewPos);
-					m_points->points[preview_idx].position = previewPos;	
+					previewInstance = true;
+					preview_idx = m_points->getInstanceCount();
+					m_points->addInstance(previewPos.x, previewPos.y, previewPos.z, glm::vec3(0.0, 1.0, 0.0f));
 					m_points->load();
-					if ( ImGui::IsMouseClicked(0)) {
-						m_points->deleteInstance(preview_idx);
-						m_points->addInstance(previewPos.x, previewPos.y, previewPos.z, glm::vec3(clear_color.x, clear_color.y, clear_color.z));
-						m_points->load();
-						//click_points = false;
-						previewInstance = false;
-				
-					
-					}
 				}
-				else {
-					previewMode = false;
-				}
-				if (click_points && previewInstance && !ImGui::IsKeyDown(ImGuiKey_LeftShift)) {
-				
-					previewInstance = false;
+				SnapToPosition(previewPos);
+				m_points->points[preview_idx].position = previewPos;
+				m_points->load();
+				if (ImGui::IsMouseClicked(0)) {
 					m_points->deleteInstance(preview_idx);
+					m_points->addInstance(previewPos.x, previewPos.y, previewPos.z, glm::vec3(clear_color.x, clear_color.y, clear_color.z));
 					m_points->load();
+					//click_points = false;
+					previewInstance = false;
+
+
 				}
-				if (select_mode)
-				{
-					ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.0f, 0.6f, 0.2f, 1.00f));
+			}
+			else {
+				previewMode = false;
+			}
+			if (click_points && previewInstance && !ImGui::IsKeyDown(ImGuiKey_LeftShift)) {
+
+				previewInstance = false;
+				m_points->deleteInstance(preview_idx);
+				m_points->load();
+			}
+			if (select_mode)
+			{
+				ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.0f, 0.6f, 0.2f, 1.00f));
+			}
+			else {
+				ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.2f, 0.3f, 0.4f, 1.00f));
+			}
+			if (ImGui::Button("Select")) {
+				select_mode = !select_mode;
+			}
+			ImGui::PopStyleColor();
+			if (select_mode) drawSelectionBox();
+
+
+			if (ImGui::InputInt("k_level", &k_input)) {
+
+			}
+			ImGui::SetNextItemWidth(75.0f);
+			ImGui::InputInt("n", &n_input);
+			ImGui::SameLine();
+			if (ImGui::Button("generate n-sided polygon"))
+			{
+				float radius = 0.2f;
+				float theta = 2 * M_PI / n_input;
+				int num = 0;
+				std::vector<Point> polyverts;
+				for (int i = 0; i < n_input; ++i) {
+					double currentAngle = i * theta;
+					Point p;
+					p.x = 0.0f + radius * std::cos(currentAngle);
+					p.y = 0.0f + radius * std::sin(currentAngle);
+					polyverts.push_back(p);
+				}
+				for (const auto& v : polyverts) {
+					num++;
+					m_points->addInstance(v.x, v.y, 0.0f, glm::vec3(clear_color.x, clear_color.y, clear_color.z));
+				}
+				std::cout << num << " points added." << std::endl;
+				m_points->load();
+
+			}
+			if (ImGui::Button("TukeyMedian"))
+			{
+				std::vector<Vertex> selected_points;
+				std::vector <glm::vec3> normals;
+				// Use selected points if available, otherwise use all points
+				if (selection && !currentSelections[GT.POINTS].selectedIndices.empty()) {
+					for (int idx : currentSelections[GT.POINTS].selectedIndices) {
+						selected_points.push_back(m_points->points[idx]);
+					}
 				}
 				else {
-					ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.2f, 0.3f, 0.4f, 1.00f));
+					selected_points = m_points->points;
 				}
-				if (ImGui::Button("Select")) {
-					select_mode = !select_mode;
-				}
-				ImGui::PopStyleColor();
-				if (select_mode) drawSelectionBox();
 
+				if (selected_points.size() >= 3) {
+					// --- Step 1: Calculate a representative depth value ---
+					float representative_ndc_z = 0.0f;
 
-				if (ImGui::InputInt("k_level", &k_input)) {
+					// Project the first point to clip space to get its depth in NDC
+					glm::mat4 MVP = proj * view * glm::mat4(1.0f);
+					glm::vec4 clipSpacePos = MVP * glm::vec4(selected_points[0].position, 1.0f);
 
-				}
-				ImGui::SetNextItemWidth(75.0f);
-				ImGui::InputInt("n", &n_input);
-				ImGui::SameLine();
-				if (ImGui::Button("generate n-sided polygon"))
-				{
-					float radius = 0.2f;
-					float theta = 2 * M_PI/n_input;
-					int num = 0;
-					std::vector<Point> polyverts;
-					for (int i = 0; i < n_input; ++i) {
-						double currentAngle = i * theta;
-						Point p;
-						p.x = 0.0f + radius * std::cos(currentAngle);
-						p.y = 0.0f + radius * std::sin(currentAngle);
-						polyverts.push_back(p);
-					}
-					for (const auto& v : polyverts) {
-						num++;
-						m_points->addInstance(v.x, v.y, 0.0f, glm::vec3(clear_color.x, clear_color.y, clear_color.z));
-					}
-					std::cout << num << " points added." << std::endl;
-					m_points->load();
-
-				}
-				if (ImGui::Button("TukeyMedian"))
-				{
-					std::vector<Vertex> selected_points;
-					std::vector <glm::vec3> normals;
-					// Use selected points if available, otherwise use all points
-					if (selection && !currentSelections[GT.POINTS].selectedIndices.empty()) {
-						for (int idx : currentSelections[GT.POINTS].selectedIndices) {
-							selected_points.push_back(m_points->points[idx]);
-						}
-					}
-					else {
-						selected_points = m_points->points;
+					// Convert to NDC by dividing by w; the z-component is our depth
+					if (clipSpacePos.w != 0.0f) {
+						representative_ndc_z = clipSpacePos.z / clipSpacePos.w;
 					}
 
-					if (selected_points.size() >= 3) {
-						// --- Step 1: Calculate a representative depth value ---
-						float representative_ndc_z = 0.0f;
+					// --- FIX: Convert NDC depth [-1, 1] to Window depth [0, 1] ---
+					float representative_win_z = (representative_ndc_z + 1.0f) * 0.5f;
 
-						// Project the first point to clip space to get its depth in NDC
-						glm::mat4 MVP = proj * view * glm::mat4(1.0f);
-						glm::vec4 clipSpacePos = MVP * glm::vec4(selected_points[0].position, 1.0f);
-
-						// Convert to NDC by dividing by w; the z-component is our depth
-						if (clipSpacePos.w != 0.0f) {
-							representative_ndc_z = clipSpacePos.z / clipSpacePos.w;
-						}
-
-						// --- FIX: Convert NDC depth [-1, 1] to Window depth [0, 1] ---
-						float representative_win_z = (representative_ndc_z + 1.0f) * 0.5f;
-
-						// --- Step 2: Project all selected points to 2D screen space ---
-						std::vector<Vertex> screen_space_points;
-						for (const auto& pt : selected_points) {
-							glm::vec2 screenPos = UIworldToScreen(pt.position, glm::mat4(1.0f), view, proj, scr_width, scr_height);
-							// The z-value here is irrelevant for the 2D algorithm
-							screen_space_points.push_back(Vertex{ glm::vec3(screenPos.x, screenPos.y, 0.0f), pt.color });
-						}
-
-						// --- Step 3: Calculate the 2D contour ---
-						TukeyContour TC(screen_space_points, k_input, true);
-						maxdepth = TC.max_depth;
-						
-						for (const auto& pair : TC.intersections_with_depth) {
-							if (pair.second == maxdepth) {
-								std::cout << "Point: (" << pair.first.x << ", " << pair.first.y << ") Depth: " << pair.second << std::endl;
-							}
-							
-						}
-						// --- Step 4: Unproject the 2D contour back to 3D using the correct window depth ---
-						std::vector <Vertex> projected_contour_points;
-						for (const auto& contour_vertex : TC.median_contour) {
-							glm::vec2 screenPos = glm::vec2(contour_vertex.position.x, contour_vertex.position.y);
-							normals.push_back(contour_vertex.position);
-							// Use the correctly converted representative_win_z for unprojection
-							projected_contour_points.push_back(Vertex{
-								UIscreenToWorld(screenPos, representative_win_z, glm::mat4(1.0f), view, proj, scr_width, scr_height),
-								glm::vec3(0.0f, 1.0f, 0.0f) // Color for the contour
-								});
-						}
-
-						for (const auto& p : projected_contour_points) {
-							std::cout << "median point: " << p.position.x << " " << p.position.y << " " << p.position.z << std::endl;
-						}
-						
-						if (projected_contour_points.size() >= 3) {
-							m_polygon->addInstance(projected_contour_points, normals);
-							m_polygon->updateInstances();
-						}
-						else {
-							for (auto& p : projected_contour_points)
-							{
-								m_points->addInstance(p.position.x, p.position.y, p.position.z, glm::vec3(0.0, 1.0, 0.0));
-							}
-							m_points->load();
-						}
-					}
-					else {
-						std::cout << "Not enough points to calculate Tukey Median." << std::endl;
-					}
-				}
-				if (maxdepth != -1)
-				{
-					ImGui::Text("MaxDepth %d: ", maxdepth);
-				}
-				if (ImGui::Button("Symmetric Projection")) {
-					std::vector<Vertex> selected_points;
-					if (selection && !currentSelections[GT.POINTS].selectedIndices.empty()) {
-						for (int idx : currentSelections[GT.POINTS].selectedIndices) {
-							selected_points.push_back(m_points->points[idx]);
-						}
-					}
-					else {
-						selected_points = m_points->points;
-					}
-					std::vector<glm::vec2> screen_space_points;
+					// --- Step 2: Project all selected points to 2D screen space ---
+					std::vector<Vertex> screen_space_points;
 					for (const auto& pt : selected_points) {
-						screen_space_points.push_back(glm::vec2(pt.position.z,pt.position.y));
-						
+						glm::vec2 screenPos = UIworldToScreen(pt.position, glm::mat4(1.0f), view, proj, scr_width, scr_height);
 						// The z-value here is irrelevant for the 2D algorithm
-						//screen_space_points.push_back(Vertex{ glm::vec3(screenPos.x, screenPos.y, 0.0f), pt.color });
+						screen_space_points.push_back(Vertex{ glm::vec3(screenPos.x, screenPos.y, 0.0f), pt.color });
 					}
-					ProjectionResult P = TV_Projection(screen_space_points);
-					std::vector<Vertex> proj_verts;
-					
-					for (glm::vec2 p : P.adjusted_points)
-					{
-						m_points->addInstance(-1.8f, p.y, p.x, glm::vec3(0, 0.2f, 0.5f));
-						
-					}
-					m_points->load();
-					
-				}
-				if (ImGui::Button("ConvexHull3D"))
-				{
-					std::vector<glm::vec3> normed = { glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec3(0.0f,1.0f, 0.0f), glm::vec3(1.0f, 0.0f, 0.0f) };
-					Selection& sel = currentSelections[0];
-					if (sel.selectedIndices.size() < 4) { std::cout << "Not enough points to compute convex hull. " << std::endl; }
-					else {
-						std::vector<glm::vec3> selectedPoints;
-						for (int i : sel.selectedIndices) { selectedPoints.push_back(m_points->points[i].position); }
-						std::vector<Triangle> hull = m_qh->computeHull(selectedPoints);
 
-						for (int j = 0; j < hull.size(); ++j) {
-							Vertex inst1 = { selectedPoints[hull[j].v1], glm::vec3(0.0f, 0.4f, 0.4f) };
-							Vertex inst2 = { selectedPoints[hull[j].v2], glm::vec3(0.0f, 0.4f, 0.4f) };
-							Vertex inst3 = { selectedPoints[hull[j].v3], glm::vec3(0.0f, 0.4f, 0.4f) };
-							m_polygon->addInstance(std::vector<Vertex>{inst1, inst2, inst3}, normed);
+					// --- Step 3: Calculate the 2D contour ---
+					TukeyContour TC(screen_space_points, k_input, true);
+					maxdepth = TC.max_depth;
+
+					for (const auto& pair : TC.intersections_with_depth) {
+						if (pair.second == maxdepth) {
+							std::cout << "Point: (" << pair.first.x << ", " << pair.first.y << ") Depth: " << pair.second << std::endl;
 						}
-						m_polygon->alpha = 0.5f;
+
+					}
+					// --- Step 4: Unproject the 2D contour back to 3D using the correct window depth ---
+					std::vector <Vertex> projected_contour_points;
+					for (const auto& contour_vertex : TC.median_contour) {
+						glm::vec2 screenPos = glm::vec2(contour_vertex.position.x, contour_vertex.position.y);
+						normals.push_back(contour_vertex.position);
+						// Use the correctly converted representative_win_z for unprojection
+						projected_contour_points.push_back(Vertex{
+							UIscreenToWorld(screenPos, representative_win_z, glm::mat4(1.0f), view, proj, scr_width, scr_height),
+							 glm::vec3(clear_color.x, clear_color.y, clear_color.z) // Color for the contour
+							});
+					}
+
+					for (const auto& p : projected_contour_points) {
+						std::cout << "median point: " << p.position.x << " " << p.position.y << " " << p.position.z << std::endl;
+					}
+
+					if (projected_contour_points.size() >= 3) {
+						m_polygon->addInstance(projected_contour_points, normals);
 						m_polygon->updateInstances();
-
 					}
-				}
-				if (ImGui::Button("TukeyMedian3D")) {
-					std::vector<glm::vec3> normed = { glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec3(0.0f,1.0f, 0.0f), glm::vec3(1.0f, 0.0f, 0.0f) };
-					Selection& sel = currentSelections[0];
-					if (sel.selectedIndices.size() < 4) { std::cout << "Not enough points to compute Tukey Median. " << std::endl; }
 					else {
-						std::vector<Vertex> selectedPoints;
-						for (int i : sel.selectedIndices) { selectedPoints.push_back(m_points->points[i]); }
-						TukeyContour3D TC = TukeyContour3D(selectedPoints, 3, true);
-						ContourResult res = TC.median_contour;
-						maxdepth = TC.max_depth;
-						if (res.primal_verts.size() == 1) {
-							m_points->addInstance(res.primal_verts[0].x, res.primal_verts[0].y, res.primal_verts[0].z, glm::vec3(0.0, 0.4, 0.4));
+						for (auto& p : projected_contour_points)
+						{
+							
+							m_points->addInstance(p.position.x, p.position.y, p.position.z, glm::vec3(clear_color.x, clear_color.y, clear_color.z));
 						}
-						if (res.primal_verts.size() >= 4) {
-
-
-							for (Triangle t : res.triangle_indices) {
-								std::vector<Vertex> t_p;
-								t_p.push_back(Vertex({ glm::vec3(res.primal_verts[t.v1].x,res.primal_verts[t.v1].y,res.primal_verts[t.v1].z), glm::vec3(0.0f,0.4f,0.4f) }));
-								t_p.push_back(Vertex({ glm::vec3(res.primal_verts[t.v2].x,res.primal_verts[t.v2].y,res.primal_verts[t.v2].z), glm::vec3(0.0f,0.4f,0.4f) }));
-								t_p.push_back(Vertex({ glm::vec3(res.primal_verts[t.v3].x,res.primal_verts[t.v3].y,res.primal_verts[t.v3].z), glm::vec3(0.0f,0.4f,0.4f) }));
-								m_polygon->addInstance(t_p, normed);
-							}
-							m_polygon->updateInstances();
-						}
+						m_points->load();
 					}
 				}
-				if (ImGui::Button("Clear Points")) {
-					m_polygon->clear();
-					m_points->clear();
+				else {
+					std::cout << "Not enough points to calculate Tukey Median." << std::endl;
+				}
+			}
+			if (maxdepth != -1)
+			{
+				ImGui::Text("MaxDepth %d: ", maxdepth);
+			}
+			if (ImGui::Button("Symmetric Projection")) {
+				std::vector<Vertex> selected_points;
+				if (selection && !currentSelections[GT.POINTS].selectedIndices.empty()) {
+					for (int idx : currentSelections[GT.POINTS].selectedIndices) {
+						selected_points.push_back(m_points->points[idx]);
+					}
+				}
+				else {
+					selected_points = m_points->points;
+				}
+				std::vector<glm::vec2> screen_space_points;
+				for (const auto& pt : selected_points) {
+					screen_space_points.push_back(glm::vec2(pt.position.z, pt.position.y));
 
+					// The z-value here is irrelevant for the 2D algorithm
+					//screen_space_points.push_back(Vertex{ glm::vec3(screenPos.x, screenPos.y, 0.0f), pt.color });
+				}
+				ProjectionResult P = TV_Projection(screen_space_points);
+				std::vector<Vertex> proj_verts;
+
+				for (glm::vec2 p : P.adjusted_points)
+				{
+					m_points->addInstance(-1.8f, p.y, p.x, glm::vec3(0, 0.2f, 0.5f));
 
 				}
+				m_points->load();
+
+			}
+			if (ImGui::Button("ConvexHull3D"))
+			{
+				std::vector<glm::vec3> normed = { glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec3(0.0f,1.0f, 0.0f), glm::vec3(1.0f, 0.0f, 0.0f) };
+				Selection& sel = currentSelections[0];
+				if (sel.selectedIndices.size() < 4) { std::cout << "Not enough points to compute convex hull. " << std::endl; }
+				else {
+					std::vector<glm::vec3> selectedPoints;
+					for (int i : sel.selectedIndices) { selectedPoints.push_back(m_points->points[i].position); }
+					std::vector<Triangle> hull = m_qh->computeHull(selectedPoints);
+
+					for (int j = 0; j < hull.size(); ++j) {
+						Vertex inst1 = { selectedPoints[hull[j].v1], glm::vec3(0.0f, 0.4f, 0.4f) };
+						Vertex inst2 = { selectedPoints[hull[j].v2], glm::vec3(0.0f, 0.4f, 0.4f) };
+						Vertex inst3 = { selectedPoints[hull[j].v3], glm::vec3(0.0f, 0.4f, 0.4f) };
+						m_polygon->addInstance(std::vector<Vertex>{inst1, inst2, inst3}, normed);
+					}
+					m_polygon->alpha = 0.5f;
+					m_polygon->updateInstances();
+
+				}
+			}
+			if (ImGui::Button("TukeyMedian3D")) {
+				std::vector<glm::vec3> normed = { glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec3(0.0f,1.0f, 0.0f), glm::vec3(1.0f, 0.0f, 0.0f) };
+				Selection& sel = currentSelections[0];
+				if (sel.selectedIndices.size() < 4) { std::cout << "Not enough points to compute Tukey Median. " << std::endl; }
+				else {
+					std::vector<Vertex> selectedPoints;
+					for (int i : sel.selectedIndices) { selectedPoints.push_back(m_points->points[i]); }
+					TukeyContour3D TC = TukeyContour3D(selectedPoints, 3, true);
+					ContourResult res = TC.median_contour;
+					maxdepth = TC.max_depth;
+					if (res.primal_verts.size() == 1) {
+						m_points->addInstance(res.primal_verts[0].x, res.primal_verts[0].y, res.primal_verts[0].z, glm::vec3(0.0, 0.4, 0.4));
+					}
+					if (res.primal_verts.size() >= 4) {
+
+
+						for (Triangle t : res.triangle_indices) {
+							std::vector<Vertex> t_p;
+							t_p.push_back(Vertex({ glm::vec3(res.primal_verts[t.v1].x,res.primal_verts[t.v1].y,res.primal_verts[t.v1].z), glm::vec3(0.0f,0.4f,0.4f) }));
+							t_p.push_back(Vertex({ glm::vec3(res.primal_verts[t.v2].x,res.primal_verts[t.v2].y,res.primal_verts[t.v2].z), glm::vec3(0.0f,0.4f,0.4f) }));
+							t_p.push_back(Vertex({ glm::vec3(res.primal_verts[t.v3].x,res.primal_verts[t.v3].y,res.primal_verts[t.v3].z), glm::vec3(0.0f,0.4f,0.4f) }));
+							m_polygon->addInstance(t_p, normed);
+						}
+						m_polygon->updateInstances();
+					}
+				}
+			}
+			if (ImGui::Button("Clear all Points")) {
+				m_polygon->clear();
+				m_points->clear();
+
+			}
+			if (ImGui::Button("Delete Selected Points")) {
+				Selection& sel = currentSelections[0];
+				m_points->unhighlight_selected(sel.selectedIndices);
+				m_points->deleteInstance(sel.selectedIndices);
+				sel.selectedIndices.clear();
+				selection = false;
+			}
 				ImGui::SameLine();
 				if (ImGui::Button("Generate polygon")) {
 					std::vector<glm::vec3> normals;
@@ -539,7 +547,9 @@ void UI::DrawWindow()
 			}
 
 		ImGui::End();
-		
+		if (ImGui::IsMouseClicked(1) && currentSelections[0].selectedIndices.size() == 2) {
+			ImGui::OpenPopup("Two Point Options");
+		}
 }
 
 void UI::DrawInspectorWindow(int opt)
@@ -547,19 +557,21 @@ void UI::DrawInspectorWindow(int opt)
 	if (opt == 1) {
 		ImGui::SetNextWindowPos(ImVec2(100, 50), ImGuiCond_FirstUseEver);
 		ImGui::Begin("Inspector");
-
+		bool one_selected = false;
 		ImVec2 mousePos = ImGui::GetMousePos();
 		for (int i = 0; i < currentSelections.size(); i++) {
 			Selection& sel = currentSelections[i];
 			ImGui::Text("Selection %d:", i + 1);
 			ImGui::Text("Selected Instances: %d", sel.selectedIndices.size());
 			if (sel.selectedIndices.size() > 0) {
+				one_selected = true;
 				for (int idx : sel.selectedIndices) {
 					glm::vec3 worldPos = sel.m_geometryType->getInstanceWorldCoords(idx);
 					ImGui::Text("Instance %d: (%.2f, %.2f, %.2f)", idx, worldPos.x, worldPos.y, worldPos.z);
 				}
 			}
 		}
+		if (one_selected) { selection = true; }
 		if (selection){
 			ImGui::Text("selection = true");
 		}
@@ -640,7 +652,36 @@ void UI::DrawInspectorWindow(int opt)
 			drawSelectionBox();
 		}
 		// --- 2. Define the Popup Modal Window ---
-		
+		ImGui::Separator();
+		ImGui::Text("Recording");
+		ImGui::InputText("##recpath", record_path, IM_ARRAYSIZE(record_path));
+		ImGui::SameLine();
+
+		if (is_recording) {
+			// Show Stop button if recording
+			if (ImGui::Button("Stop Recording")) {
+				is_recording = false;
+				GifEnd(m_gifWriter); // Finalize the GIF
+				std::cout << "Stopped recording. GIF saved to " << record_path << std::endl;
+			}
+		}
+		else {
+			// Show Record button if not recording
+			if (ImGui::Button("Record")) {
+				is_recording = true;
+				// Initialize the GIF writer
+				if (!GifBegin(m_gifWriter, record_path, scr_width, scr_height, 1)) { // 10ms delay for 100 FPS
+					std::cerr << "Error starting GIF recording." << std::endl;
+					is_recording = false;
+				}
+				else {
+					std::cout << "Started recording to " << record_path << std::endl;
+					// Allocate buffer for frame capture
+					m_frameBuffer.resize(scr_width * scr_height * 4);
+				}
+			}
+		}
+		ImGui::Separator();
 		ImGui::End();
 		data_pointer = ImGui::GetDrawData();
 	}
@@ -684,6 +725,34 @@ void UI::DrawPopups()
 		}
 		ImGui::SameLine();
 		if (ImGui::Button("Cancel", ImVec2(120, 0))) {
+			ImGui::CloseCurrentPopup();
+		}
+		ImGui::EndPopup();
+	}
+	ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+	if (ImGui::BeginPopupModal("Two Point Options", NULL, ImGuiWindowFlags_AlwaysAutoResize))
+	{
+		
+		// This is the button that closes the popup when pressed.
+		if (ImGui::Button("Connect", ImVec2(120, 0)))
+		{
+			Selection& sel = currentSelections[0];
+			if (sel.selectedIndices.size() == 2) {
+				int idx1 = sel.selectedIndices[0];
+				int idx2 = sel.selectedIndices[1];
+				glm::vec3 pos1 = sel.m_geometryType->getInstanceWorldCoords(idx1);
+				glm::vec3 pos2 = sel.m_geometryType->getInstanceWorldCoords(idx2);
+				
+				m_line->addInstance(pos1,pos2, glm::vec3(0.0f, 0.5f, 0.3f));
+				m_line->updateInstances();
+			}
+			else {
+				std::cerr << "Error: Exactly two points must be selected to connect." << std::endl;
+			}
+			ImGui::CloseCurrentPopup();
+		}
+		if (ImGui::Button("Back", ImVec2(120, 0)))
+		{
 			ImGui::CloseCurrentPopup();
 		}
 		ImGui::EndPopup();
@@ -828,19 +897,21 @@ void UI::highlightHoverSelect(ImVec2 p0) {
 	float minY = p0.y - 5.0, maxY = p0.y + 5.0;
 	float r;
 	glm::vec3 cursor_world_pos = getPreviewPos();
+	
 	// For each selection, project its position to screen space and check if inside box
 	for (int i = 0; i < hoverSelections.size(); i++) {
 
 		Selection& sel = currentSelections[i];
 		Selection& sel2 = hoverSelections[i];
-
+		bool any_point_hovered = false;
 		int instances = sel.m_geometryType->getInstanceCount();
 		for (int idx = 0; idx < instances; ++idx) {
 			glm::vec3 worldPos = sel.m_geometryType->getInstanceWorldCoords(idx);
-
+			
 			glm::vec2 screenPos = UIworldToScreen(worldPos, view, glm::mat4(1.0f), proj, scr_width, scr_height);
 			switch (i) {
 			case 0: //Points
+				
 				if (screenPos.x >= minX && screenPos.x <= maxX && screenPos.y >= minY && screenPos.y <= maxY) {
 					
 					if (std::find(sel.selectedIndices.begin(), sel.selectedIndices.end(), idx) == sel.selectedIndices.end()) 
@@ -849,13 +920,15 @@ void UI::highlightHoverSelect(ImVec2 p0) {
 					}
 					if (ImGui::IsMouseClicked(0)) 
 					{
+						any_point_hovered = true;
 						sel2.selectedIndices.push_back(idx);
 						std::cout << "object hovered selected " << idx << std::endl;
 						break;
 					}
 				}
-				else if (sel2.selectedIndices.size() > 0 && ImGui::IsMouseClicked(0))
+				else if (sel2.selectedIndices.size() > 0 && ImGui::IsMouseClicked(0) && !ImGui::IsKeyDown(ImGuiKey_LeftShift) && !ImGui::IsAnyItemHovered() && !any_point_hovered)
 				{
+					any_point_hovered = false;
 					sel.m_geometryType->unhighlight_selected(sel.selectedIndices);
 					// If the object is hovered but was not previously selected, add it to selection
 					sel.selectedIndices.clear();
@@ -959,12 +1032,28 @@ void UI::highlightHoverSelect(ImVec2 p0) {
 					//sel.m_geometryType->unhighlight_selected({ idx });
 				}
 
-				else {
+				/*else {
 					sel.selectedIndices.clear();
-				}
+				}*/
 				break;
 			}
-			
+			if (select_mode && selection && ImGui::IsKeyPressed(ImGuiKey_Delete)) {
+				std::cout << "Delete key pressed" << std::endl;	
+				for (auto& sel : currentSelections) {
+
+					// --- FIX: Sort indices in descending (reverse) order before deleting ---
+					std::sort(sel.selectedIndices.begin(), sel.selectedIndices.end(), std::greater<int>());
+
+					for (auto& i : sel.selectedIndices) {
+						// Now, the highest index is deleted first, keeping other indices valid.
+						sel.m_geometryType->deleteInstance(i);
+					}
+
+					sel.selectedIndices.clear();
+				}
+
+				selection = false;
+			}
 
 			sel.m_geometryType->highlight_selected(sel.selectedIndices);
 
@@ -1169,6 +1258,17 @@ bool UI::sort_descend(int a, int b) {
 }
 bool UI::sort_ascend(int a, int b) {
 	return a < b;
+}
+void UI::CaptureFrame()
+{
+	if (is_recording) {
+		// Read the pixels from the front buffer
+		glReadPixels(0, 0, scr_width, scr_height, GL_RGBA, GL_UNSIGNED_BYTE, m_frameBuffer.data());
+
+		// Write the frame to the GIF file
+		// The delay is per frame, so 10ms = 100fps, 20ms = 50fps, etc.
+		GifWriteFrame(m_gifWriter, m_frameBuffer.data(), scr_width, scr_height, 2); // 20ms delay for 50 FPS
+	}
 }
 void UI::saveToCSV(const std::string& filepath) {
 	std::ofstream file(filepath);

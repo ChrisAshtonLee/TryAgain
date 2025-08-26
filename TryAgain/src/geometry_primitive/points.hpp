@@ -78,16 +78,30 @@ public:
         
 		return true;
     }
-    void deleteInstance(int idx) {
-        if (idx < 0 || idx >= noInstances) {
-            std::cerr << "Invalid index: " << idx << std::endl;
-            return;
-        }
-        points.erase(points.begin() + idx);
-		original_colors.erase(original_colors.begin() + idx); // Remove corresponding original color
-        noInstances--;
+    void deleteInstance(std::vector<int> idxlist) {
+       
+        int offset = 0;
+        for (int idx : idxlist) {
+            int adjusted_idx = idx - offset; // Adjust index based on previous deletions
+            if (adjusted_idx < 0 || adjusted_idx >= noInstances) {
+                std::cout << "Invalid index: " << idx << std::endl;
+                continue;
+            }
+            points.erase(points.begin() + adjusted_idx);
+            original_colors.erase(original_colors.begin() + adjusted_idx); // Remove corresponding original color
+            noInstances--;
+            offset++; // Increment offset after each deletion
+		}
         //std::cout << "point deleted." << std::endl;
 	}
+    void deleteInstance(int idx) {
+
+        
+        points.erase(points.begin() +idx);
+        original_colors.erase(original_colors.begin() + idx); // Remove corresponding original color
+        noInstances--;
+
+    }
     void load() {
 
         VAO.bind();

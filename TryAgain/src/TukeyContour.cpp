@@ -247,7 +247,7 @@ TukeyContour::TukeyContour(std::vector<Vertex> input_points, int k, bool median=
         }
        // intersections_with_depth.push_back({ p, depth });
     }
-  //  std::cout << "Step 3: Calculated depths. Maximum depth (k*) is " << max_depth << "." << std::endl;
+    std::cout << "Step 3: Calculated depths. Maximum depth (k*) is " << max_depth << "." << std::endl;
 
     // --- Step 4: Identify the vertices of the median region in the dual space ---
     std::vector<Point> final_contour = getContour(max_depth);
@@ -255,7 +255,8 @@ TukeyContour::TukeyContour(std::vector<Vertex> input_points, int k, bool median=
     {
         median_contour.clear();
         max_depth--; 
-       // std::cout << "contour with depth " << max_depth + 1 << " is empty, trying depth " << max_depth << std::endl;
+        std::cout << "contour with depth " << max_depth + 1 << " is empty, trying depth " << max_depth << std::endl;
+        
         if (max_depth < 0) {
             std::cout << "no contour found." << std::endl;
             break;
@@ -334,7 +335,7 @@ std::vector<Point> TukeyContour::getContour(int k)
                 if (std::abs(l1.m - l2.m) > 1e-9) {
                     double x = (l2.c - l1.c) / (l1.m - l2.m);
                     double y = l1.m * x + l1.c;
-                   // median_contour.push_back({ glm::vec3(x, y,0.0f), glm::vec3(0.0f,1.0f,0.0f) });
+                    median_contour.push_back({ glm::vec3(x, y,0.0f), glm::vec3(0.0f,1.0f,0.0f) });
                 }
             }
         }
@@ -375,10 +376,12 @@ std::vector<Point> TukeyContour::getContour(int k)
                        
                         Lines l = { primal_contour_lines[boundary_indices[v]].m, primal_contour_lines[boundary_indices[v]].c };
                         if (primal_contour_lines[boundary_indices[v]].type == 1) {
-                            if (!isAbove(p, l)  && std::abs(l.m )<1000000000 &&!isOn(p,l)) {
+                            if (!isAbove(p, l) && std::abs(l.m) < 1000000000) {//&&!isOn(p,l)) {
                                 //  && boundary_indices[k] != i && boundary_indices[k] != j
                                 isValid = false;
-                               // std::cout << "FAIL: Point " << p.x << " " << p.y << " is below line m: " << l.m << " c: " << l.c << std::endl;
+                                if (max_depth == 5) {
+                                std::cout << "FAIL: Point " << p.x << " " << p.y << " is below line m: " << l.m << " c: " << l.c << std::endl;
+                            }
                             }
                            /* else {
                                 std::cout << "PASS: Point " << p.x << " " << p.y << " is above line m: " << l.m << " c: " << l.c << std::endl;
@@ -386,11 +389,13 @@ std::vector<Point> TukeyContour::getContour(int k)
 
                         }
                         if (primal_contour_lines[boundary_indices[v]].type == -1){
-                            if (isAbove(p, l) && std::abs(l.m) < 1000000000 && !isOn(p,l)) {
+                            if (isAbove(p, l) && std::abs(l.m) < 1000000000){// && !isOn(p,l)) {
                                 // && boundary_indices[k] != i && boundary_indices[k] != j
                                 isValid = false;
-                               // std::cout << "FAIL: Point " << p.x << " " << p.y << " is above line m: " << l.m << " c: " << l.c << std::endl;
-                            }
+                                if (max_depth == 5) {
+                                    std::cout << "FAIL: Point " << p.x << " " << p.y << " is above line m: " << l.m << " c: " << l.c << std::endl;
+                                }
+                           }
                           /*  else {
                                 std::cout << "PASS: Point " << p.x << " " << p.y << " is below line m: " << l.m << " c: " << l.c << std::endl;
                             }*/
@@ -403,12 +408,12 @@ std::vector<Point> TukeyContour::getContour(int k)
                         DualLines low = lower_depth_lines[r];
                         Lines l = Lines{ low.m,low.c };
                         if (low.type == -1) {
-                            if (isAbove(p, l) && std::abs(l.m) < 1000000000 && !isOn(p, l)) {
+                            if (isAbove(p, l) && std::abs(l.m) < 1000000000 ){// && !isOn(p, l)) {
                                 isValid = false;
                             }
                         }
                         if (low.type == 1) {
-                            if (!isAbove(p, l) && std::abs(l.m) < 1000000000 && !isOn(p, l)) {
+                            if (!isAbove(p, l) && std::abs(l.m) < 1000000000 ){//&& !isOn(p, l)) {
                                 isValid = false;
                         
                             }

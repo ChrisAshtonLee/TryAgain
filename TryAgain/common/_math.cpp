@@ -4,6 +4,7 @@
 #include <map>
 #include <set>
 
+
 Point operator+(const Point& a, const Point& b) { return { a.x + b.x, a.y + b.y }; }
 Point operator-(const Point& a, const Point& b) { return { a.x - b.x, a.y - b.y }; }
 Point operator/(const Point& a, double scalar) { return { a.x / scalar, a.y / scalar }; }
@@ -88,7 +89,8 @@ std::vector<Triangle> Quickhull3D::computeHull(const std::vector<glm::vec3>& poi
     m_hullFaces.clear();
 
     if (!initialize(points)) {
-        throw std::runtime_error("Could not initialize the hull. Points may be degenerate (collinear/coplanar).");
+        //throw std::runtime_error("Could not initialize the hull. Points may be degenerate (collinear/coplanar).");
+        return std::vector<Triangle>{};
     }
 
     // Process all faces that have points on their outside

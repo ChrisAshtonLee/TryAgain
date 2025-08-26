@@ -1,4 +1,7 @@
 #pragma once
+
+#define GIF_IMPLEMENTATION
+#include <src/ui/gif.h>
 #include <imgui/imgui.h>
 #include <glad/glad.h>
 #include <glm/glm.hpp>
@@ -17,6 +20,7 @@
 #include <src/rendering/shader.h>
 #include<scripts/ResilientConsensus.hpp>  
 #include <src/TukeyContour3D.h>
+
 #include <common/data.h>
 
 #include <set>
@@ -67,6 +71,7 @@ public:
     static bool sort_ascend(int a, int b);
     const std::vector<int>& getNormalAgents() const { return normalAgents; }
     const std::vector<int>& getAdversaries() const { return adversaries; }
+    void CaptureFrame();
     bool previewInstance = false;
     bool previewMode = false;
     ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
@@ -130,7 +135,10 @@ private:
     std::shared_ptr<ResilientConsensus> m_rc{};
     std::unique_ptr<Quickhull3D> m_qh;
     ImDrawData * data_pointer{};
-    
+	bool is_recording = false;
+    char record_path[128] = "C:/Users/85chr/source/repos/TryAgain/plots/simulation.gif";
+	GifWriter m_gifWriter;
+    std::vector<uint8_t> m_frameBuffer;
     
      
 

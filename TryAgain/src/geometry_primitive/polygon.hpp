@@ -136,6 +136,29 @@ public:
         selected_indices.clear();
 
     }
+    void highlight_selected(std::vector<int> indices) {
+        //VAO.bind();
+        for (int idx : indices) {
+
+            points[2*idx].color = glm::vec3(1.0f, 1.0f, 0.0f); // bright yellow
+			points[2 * idx + 1].color = glm::vec3(1.0f, 1.0f, 0.0f); // bright yellow
+        }
+        // Update buffer with new colors
+        load();
+        // VAO["VBO"].setData<Vertex>((GLuint)noInstances, &points[0], GL_STATIC_DRAW);
+    }
+
+    void unhighlight_selected(std::vector<int> indices) {
+        //VAO["VBO"].bind();
+
+        for (int idx : indices) {
+            points[2*idx].color = original_colors[2*idx];
+            points[2 * idx+1].color = original_colors[2*idx+1];// restore original color
+        }
+        // Update buffer with restored colors
+        //VAO["VBO"].setData<Vertex>((GLuint)noInstances, &points[0], GL_STATIC_DRAW);
+        load();
+    }
     void render() {
         
         shader.activate();

@@ -5,7 +5,7 @@
 //#include <src/geometry_primitives/points.hpp>
 
 
-
+const double EPSILON = 1e-9;
 class Sphere;
 class Points;
 class Line;
@@ -79,6 +79,17 @@ struct Point {
 struct Point3D {
 	double x, y, z;
 };
+inline bool operator<(const Point3D& a, const Point3D& b) {
+	if (std::abs(a.x - b.x) > EPSILON) return a.x < b.x;
+	if (std::abs(a.y - b.y) > EPSILON) return a.y < b.y;
+	if (std::abs(a.z - b.z) > EPSILON) return a.z < b.z;
+	return false; // Points are considered equal
+}
+inline bool operator==(const Point3D& a, const Point3D& b) {
+	return std::abs(a.x - b.x) < EPSILON &&
+		std::abs(a.y - b.y) < EPSILON &&
+		std::abs(a.z - b.z) < EPSILON;
+}
 struct Face {
 	int v1, v2, v3;
 	glm::vec3 normal;

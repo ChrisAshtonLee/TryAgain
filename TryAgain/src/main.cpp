@@ -493,7 +493,7 @@ void scrollChanged(GLFWwindow* window, double dx, double dy) {
 		camPtr->updateCameraZoom(scrollDy);
 	}
 	if (scrollDy != 0 && uiPtr->previewMode){
-		glm::vec3 depth(camPtr->cameraFront.x + scrollDy * .1, camPtr->cameraFront.y + scrollDy * .1, camPtr->cameraFront.z + scrollDy * .1);
+		glm::vec3 depth(camPtr->cameraFront.x + scrollDy * .025, camPtr->cameraFront.y + scrollDy * .025, camPtr->cameraFront.z + scrollDy * .025);
 		uiPtr->previewDepth += glm::vec3(0.05 * scrollDy) * camPtr->cameraFront;
 		uiPtr->previewDepth += glm::vec3(0.05*scrollDy)* camPtr->cameraFront; 
 		camData.ScrollDepth = depth;

@@ -3,7 +3,7 @@
 #include <vector>
 #include <algorithm>
 #include <cmath>
-#include <common/_math.h>
+
 #include <fstream>
 #include <iomanip>
 
@@ -14,7 +14,7 @@
  * @return < 0 for a clockwise turn (p3 is to the right).
  * @return = 0 for collinear points.
  */
-//const double EPSILON = 1e-6;
+const double EPSILON = 1e-6;
 double TukeyContour3D::cross_product(Point3D p1, Point3D p2, Point3D p3) {
     return (p2.x - p1.x) * (p3.y - p1.y) - (p2.y - p1.y) * (p3.x - p1.x);
 }
@@ -41,14 +41,31 @@ bool TukeyContour3D::isOn(Point3D p, Planes l)
 
 std::vector<Point3D> TukeyContour3D::makeUnique(std::vector<Point3D> arr)
 {
-    if (arr.empty()) {
-        return {};
+    bool inlist;
+    std::vector<int> uniqueIdxList;
+    std::vector<Point3D> uniqueArray;
+    for (int i = 0; i < arr.size(); ++i) {
+        inlist = false;
+        //cout << " do this once:" << i<<" " << arr.size() << endl;
+        if (uniqueIdxList.size() > 0) {
+            for (int j = 0; j < uniqueIdxList.size(); ++j) {
+                if (std::abs(arr[i].x - arr[uniqueIdxList[j]].x) < EPSILON && std::abs(arr[i].y - arr[uniqueIdxList[j]].y) < EPSILON
+                    && std::abs(arr[i].z - arr[uniqueIdxList[j]].z) < EPSILON) {
+                    inlist = true;
+                }
+            }
+            if (!inlist) {
+                uniqueIdxList.push_back(i);
+            }
+        }
+        else {
+            uniqueIdxList.push_back(i);
+        }
     }
-    // Sort the array to bring duplicates together
-    std::sort(arr.begin(), arr.end());
-    // Erase consecutive duplicates
-    arr.erase(std::unique(arr.begin(), arr.end()), arr.end());
-    return arr;
+    for (int k = 0; k < uniqueIdxList.size(); ++k) {
+        uniqueArray.push_back(arr[uniqueIdxList[k]]);
+    }
+    return uniqueArray;
 }
 bool TukeyContour3D::anyParallel(Planes p1, Planes p2, Planes p3)
 {
@@ -429,78 +446,19 @@ ContourResult TukeyContour3D::getContour(int k)
 
         // --- Step 6: Transform the vertices of the dual contour back to primal lines ---
         // A point (dx, dy) in the dual space transforms back to a line y = dx*x - dy in the primal space.
-		std::vector<glm::vec3> median_dual_points_glm;
-        std::vector<Point3D> median_dual_points;
-        std::vector<Triangle> dual_hull_faces;
+
         for (const auto& p : median_dual_vertices) {
-			median_dual_points.push_back(p.point);
+
             primal_contour_planes.push_back({ p.point.x,p.point.y,-p.point.z,p.type });
-            median_dual_points_glm.push_back(glm::vec3(p.point.x, p.point.y, p.point.z));
             if (!suppress) { std::cout << "primal contour line m: " << p.point.x << " c: " << -p.point.y << std::endl; }
         }
-        /*if (median_dual_points_glm.size() >= 4) {
-            dual_hull_faces = qh.computeHull(median_dual_points_glm);
-            
-            std::cout << "Convex hull has " << std::endl;
-            for (auto& triangle : dual_hull_faces) {
-                std::vector <int> inds = { triangle.v1, triangle.v2, triangle.v3 };
-                for (int idx : inds) {
-                    std::cout << "dual hull vertex: " << median_dual_vertices[idx].point.x << " " << median_dual_vertices[idx].point.y << " " << median_dual_vertices[idx].point.z << std::endl;
-                }
 
-            }
-        }*/
-        
-        
-        
+
         //  std::cout << "Step 6: Transformed dual contour vertices back to primal lines." << std::endl;
 
           // --- Step 7: Find the intersections of these primal lines to get the final contour vertices ---
         std::vector<Point3D> primal_vertices;
-        //TEST CODE//
-        //
-        //for (const auto& face : dual_hull_faces) {
-        //    // Get the three dual points that form the face using the mapped indices
-        //    Point3D v1 = median_dual_points[face.v1];
-        //    Point3D v2 = median_dual_points[face.v2];
-        //    Point3D v3 = median_dual_points[face.v3];
 
-        //    // The duals of these points are planes in the primal space.
-        //    // A dual point (dx, dy, dz) corresponds to a primal plane z = dx*x + dy*y - dz
-        //    Planes p1 = { v1.x, v1.y, -v1.z };
-        //    Planes p2 = { v2.x, v2.y, -v2.z };
-        //    Planes p3 = { v3.x, v3.y, -v3.z };
-
-        //    // The intersection of these three primal planes is a vertex of our final contour.
-        //    Point3D primal_vertex = planesIntersect(p1, p2, p3);
-        //    if (!std::isnan(primal_vertex.x)) {
-        //        primal_vertices.push_back(primal_vertex);
-        //    }
-        //}
-
-        //std::vector<Point3D> unique_vertices = makeUnique(primal_vertices);
-        //std::vector<glm::vec3> final_vertices_glm;
-        //for (auto& v : unique_vertices) {
-        //    final_vertices_glm.push_back(glm::vec3(v.x, v.y, v.z));
-        //}
-
-        //std::vector<Triangle> final_contour_indices;
-        //if (final_vertices_glm.size() > 3) {
-        //    // Compute the hull of the final primal vertices to get the triangulation for rendering.
-        //    final_contour_indices = qh.computeHull(final_vertices_glm);
-        //}
-
-        //// Rescale points back to original size
-        //for (auto& v : unique_vertices) {
-        //    v.x /= 100.0;
-        //    v.y /= 100.0;
-        //    v.z /= 100.0;
-        //}
-
-        //return ContourResult{ unique_vertices, final_contour_indices };
-
-
-        ///OLD CODE///
         for (int i = 0; i < primal_contour_planes.size() - 2; ++i) {
             const DualPlanes& l1 = primal_contour_planes[i];
             for (int j = i + 1; j < primal_contour_planes.size() - 1; ++j) {

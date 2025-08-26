@@ -54,7 +54,20 @@ public:
     void addInstance(const glm::vec3& start, const glm::vec3& end, const glm::vec3& color) {
         vertices.push_back({ start, color });
         vertices.push_back({ end, color });
+		original_colors.push_back(color); // Store original color for highlighting
         noInstances++;
+    }
+    void deleteInstance(int idx) {
+        if (idx < 0 || idx >= noInstances) {
+            std::cerr << "Invalid index: " << idx << std::endl;
+            return;
+        }
+        vertices.erase(vertices.begin()+2*idx,vertices.begin()+2*idx+1);
+        original_colors.erase(original_colors.begin() + idx); // Remove corresponding original color
+       
+        
+        noInstances--;
+        std::cout << "line deleted." << std::endl;
     }
     void updateInstances() {
         VAO.bind();

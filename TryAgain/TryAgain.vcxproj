@@ -373,6 +373,7 @@
     <ClInclude Include="src\rendering\vertexmemory.hpp" />
     <ClInclude Include="src\TukeyContour.h" />
     <ClInclude Include="src\TukeyRegion.h" />
+    <ClInclude Include="src\ui\gif.h" />
     <ClInclude Include="src\ui\imgui_impl_opengl3.h" />
     <ClInclude Include="src\ui\UI.h" />
     <ClInclude Include="src\TukeyContour3D.h" />
